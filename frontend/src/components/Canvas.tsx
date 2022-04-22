@@ -24,6 +24,8 @@ const chessPattern = (context: CanvasRenderingContext2D, offset: Point) => {
   }
 }
 
+
+
 const Canvas: React.FC<{ height: number; width: number }> = (props) => {
   const canvasRef = useRef(null)
   const [canvasOffset, setCanvasOffset] = useState<Point>({x:0, y:0})

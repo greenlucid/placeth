@@ -17,6 +17,6 @@ export type Chunk = {
 }
 
 export type Pixel = {
-  color: RGBColor,
+  color: string,
   locked?: boolean
 }
