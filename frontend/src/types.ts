@@ -20,3 +20,5 @@ export type Pixel = {
   color: string,
   locked?: boolean
 }
+
+export type LocalChunk = Pixel[][]
