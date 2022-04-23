@@ -49,7 +49,12 @@ const Panel: React.FC<{
         pixelChangesMap={props.pixelChangesMap}
         setPixelChangesMap={props.setPixelChangesMap}
       />
-      <a href="/help">HELP</a>
+      <div>
+        <a href="/lockings">LOCKINGS</a>
+      </div>
+      <div>
+        <a href="/help">HELP</a>
+      </div>
     </div>
   )
 }

@@ -4,7 +4,7 @@ interface Config {
 }
 
 const conf: Config = {
-  SUBGRAPH_URL: "test.org",
+  SUBGRAPH_URL: "https://thegraph.com/hosted-service/subgraph/shotaronowhere/placeth",
   CELL_SIZE: 15,
 }
 
