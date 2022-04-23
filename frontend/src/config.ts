@@ -5,9 +5,10 @@ interface Config {
 }
 
 const conf: Config = {
-  SUBGRAPH_URL: "https://thegraph.com/hosted-service/subgraph/shotaronowhere/placeth",
+  SUBGRAPH_URL:
+    "https://api.thegraph.com/subgraphs/name/shotaronowhere/placeth",
   CELL_SIZE: 10,
-  EXPIRY_TIME: 15_000
+  EXPIRY_TIME: 15_000,
 }
 
 export default conf

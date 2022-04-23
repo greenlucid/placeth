@@ -24,9 +24,9 @@ const fetchChunk = async (chunkId: string): Promise<LocalChunk | null> => {
   const subgraphQuery = {
     query: `
       {
-        chunk(chunkId: "${chunkId}") {
-          chunkdata
-          locks
+        chunk(id: "${chunkId}") {
+          color
+          lock
         }
       }
     `,
@@ -35,6 +35,7 @@ const fetchChunk = async (chunkId: string): Promise<LocalChunk | null> => {
     method: "POST",
     body: JSON.stringify(subgraphQuery),
   })
+  console.log(response)
 
   const { data } = await response.json()
   const chunk: Chunk | null = data.chunk
@@ -61,9 +62,10 @@ const useChunk = () => {
   const [chunkMap, setChunkMap] = useState<ChunkMap>({})
 
   const updateChunks = async (chunkId: string) => {
-    /*const fetchedChunk = await fetchChunk(chunkId)
-    const storedChunk = fetchedChunk ? fetchedChunk : {...nullChunk, fetchedIn: new Date().getTime()} */
-    const storedChunk = temphack()
+    const fetchedChunk = await fetchChunk(chunkId)
+    const storedChunk = fetchedChunk
+      ? fetchedChunk
+      : { ...nullChunk, fetchedIn: new Date().getTime() }
     const updatedChunks = { ...chunkMap, [chunkId]: storedChunk }
     setChunkMap(updatedChunks)
   }
