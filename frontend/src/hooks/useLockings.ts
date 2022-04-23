@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Chunk, Locking, Point } from "../types"
+import { Locking } from "../types"
 import conf from "../config"
 
 const fetchLockings = async (): Promise<Locking[]> => {
@@ -21,7 +21,6 @@ const fetchLockings = async (): Promise<Locking[]> => {
   const response = await fetch(conf.SUBGRAPH_URL, {
     method: "POST",
     body: JSON.stringify(subgraphQuery),
-    
   })
 
   const { data } = await response.json()
@@ -30,11 +29,26 @@ const fetchLockings = async (): Promise<Locking[]> => {
   return lockings
 }
 
+const temphack = (): Locking[] => {
+  // gens a random lockings for testing before subgraph
+  return [
+    {
+      id: "dsfasdf",
+      requester: "afdsasf",
+      timestamp: 123,
+      x: 32000,
+      y: 32000,
+      xx: 32010,
+      yy: 32010,
+    },
+  ]
+}
+
 const useLockings = (): Locking[] | undefined => {
   const [lockings, setLockings] = useState<Locking[]>()
 
   const updateLockings = async () => {
-    const fetchedChunk = await fetchLockings()
+    const fetchedChunk = await temphack()
     setLockings(fetchedChunk)
   }
 

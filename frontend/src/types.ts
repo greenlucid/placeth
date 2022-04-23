@@ -12,7 +12,7 @@ export type PixelChange = {
 
 export type PixelChangesMap = { [p: string]: number }
 
-export type Chunk = {
+export interface Chunk {
   chunkdata: Bytes
   locks: Bytes
 }
@@ -22,7 +22,9 @@ export type Pixel = {
   locked?: boolean
 }
 
-export type LocalChunk = Pixel[]
+export interface LocalChunk extends Chunk {
+  fetchedIn: number
+}
 
 export type Locking = {
   id: string

@@ -4,9 +4,11 @@ import { Locking } from "../types"
 const LockingComp: React.FC<{ locking: Locking }> = ({ locking }) => {
   return (
     <div>
+      <h3>locking "{locking.id}"</h3>
       <p>
         Coords are{" "}
-        {`(${(locking.x, locking.y)}) to (${(locking.xx, locking.yy)})`}
+        {`(${locking.x - 2 ** 15}, ${locking.y - 2 ** 15}) to
+          (${locking.xx - 2 ** 15}, ${locking.yy - 2 ** 15})`}
       </p>
       <p>
         Submitted by{" "}
@@ -45,8 +47,8 @@ const LockingsPage: React.FC = () => {
     <div>
       <h1>
         <a href="/">Back to placeth</a>
-        <LockingsContainer lockings={lockings} />
       </h1>
+      <LockingsContainer lockings={lockings} />
     </div>
   )
 }

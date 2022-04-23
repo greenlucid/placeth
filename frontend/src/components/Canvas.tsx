@@ -99,6 +99,7 @@ const renderCanvas = (
   const chunkSize = cellSize * 8
   const chunksToQuery = boundChunks(width, height, chunkSize, offset)
   const chunks = chunksToQuery.chunkIds.map((c) => getChunk(c))
+  console.log("chunks", chunks)
   const hackfirst = {
     x: 0,
     y: 0,
@@ -139,18 +140,11 @@ const Canvas: React.FC<{
   const [canvasOffset, setCanvasOffset] = useState<Point>({ x: 0, y: 0 })
   const [anchorPoint, setAnchorPoint] = useState<Point>({ x: 0, y: 0 })
   const [mouseDown, setMouseDown] = useState<boolean>(false)
-  const [context, setContext] = useState<CanvasRenderingContext2D>()
 
   useEffect(() => {
     const canvas = canvasRef.current as any
     if (canvas) {
       const context = canvas.getContext("2d") as CanvasRenderingContext2D
-      setContext(context)
-    }
-  }, [canvasRef])
-
-  const handleUpdate = () => {
-    if (context) {
       renderCanvas(
         width,
         height,
@@ -160,23 +154,9 @@ const Canvas: React.FC<{
         props.pixelChangesMap
       )
     }
-  }
-
-  useEffect(() => {
-    handleUpdate()
-  }, [context, canvasOffset, props.pixelChangesMap])
-
-  // https://stackoverflow.com/questions/65049812
-  useEffect(() => {
-    const interval = setInterval(() => {
-      handleUpdate()
-    }, 1_000)
-
-    return () => clearInterval(interval)
-  }, [])
+  }, [canvasOffset, props.pixelChangesMap])
 
   const dragModeAnchorMouse = (event: MouseEvent) => {
-    console.log(event.clientX, event.clientY, mouseDown)
     setAnchorPoint({ x: event.clientX, y: event.clientY })
     setMouseDown(true)
   }
