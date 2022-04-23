@@ -161,7 +161,6 @@ const Canvas: React.FC<{
   }
 
   const getAbsoluteCellPos = (event: MouseEvent): Point => {
-    // ugly as fuck code
     const cellSize = conf.CELL_SIZE
     const chunkSize = cellSize * 8
     const chunksToQuery = boundChunks(width, height, chunkSize, canvasOffset)
