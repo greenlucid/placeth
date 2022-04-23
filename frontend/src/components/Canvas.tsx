@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react"
 import conf from "../config"
 import useChunk from "../hooks/useChunk"
-import chunkToColors from "../libs/decode-chunk"
+import { palette } from "../libs/colors"
+import chunkToColors, { changesOverlay } from "../libs/decode-chunk"
 import { pointToString } from "../libs/pixel-changes"
 import { Chunk, PixelChange, PixelChangesMap, Point } from "../types"
 
@@ -36,7 +37,8 @@ const renderChunk = (
   corner: Point,
   chunkSize: number,
   cellSize: number,
-  chunk: Chunk | undefined
+  chunk: Chunk | undefined,
+  changes: Array<number | undefined>
 ): void => {
   if (chunk === undefined) {
     // loading...
@@ -68,6 +70,20 @@ const renderChunk = (
         context.fillRect(pixelCorner.x, pixelCorner.y, cellSize, cellSize)
       }
     }
+    // render changes on top
+    for (let i = 0; i < 8; i++) {
+      for (let j = 0; j < 8; j++) {
+        const change = changes[i * 8 + j]
+        if (change !== undefined) {
+          context.fillStyle = palette[change]
+          const pixelCorner = {
+            x: corner.x + i * cellSize,
+            y: corner.y + j * cellSize,
+          }
+          context.fillRect(pixelCorner.x, pixelCorner.y, cellSize, cellSize)
+        }
+      }
+    }
   }
 }
 
@@ -76,7 +92,8 @@ const renderCanvas = (
   height: number,
   context: CanvasRenderingContext2D,
   offset: Point,
-  getChunk: (coords: Point) => Chunk | undefined
+  getChunk: (coords: Point) => Chunk | undefined,
+  pixelChangesMap: PixelChangesMap
 ) => {
   const cellSize = conf.CELL_SIZE
   const chunkSize = cellSize * 8
@@ -98,7 +115,8 @@ const renderCanvas = (
       x: hackfirst.x + chunkDiff.x * chunkSize,
       y: hackfirst.y + chunkDiff.y * chunkSize,
     }
-    renderChunk(context, chunkCorner, chunkSize, cellSize, chunk)
+    const changes = changesOverlay(chunkId, pixelChangesMap)
+    renderChunk(context, chunkCorner, chunkSize, cellSize, chunk, changes)
   }
 }
 
@@ -123,8 +141,6 @@ const Canvas: React.FC<{
   const [mouseDown, setMouseDown] = useState<boolean>(false)
   const [context, setContext] = useState<CanvasRenderingContext2D>()
 
-  console.log("afewfa", width, height)
-
   useEffect(() => {
     const canvas = canvasRef.current as any
     if (canvas) {
@@ -133,11 +149,31 @@ const Canvas: React.FC<{
     }
   }, [canvasRef])
 
-  useEffect(() => {
+  const handleUpdate = () => {
     if (context) {
-      renderCanvas(width, height, context, canvasOffset, getChunk)
+      renderCanvas(
+        width,
+        height,
+        context,
+        canvasOffset,
+        getChunk,
+        props.pixelChangesMap
+      )
     }
-  }, [canvasOffset])
+  }
+
+  useEffect(() => {
+    handleUpdate()
+  }, [context, canvasOffset, props.pixelChangesMap])
+
+  // https://stackoverflow.com/questions/65049812
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handleUpdate()
+    }, 1_000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   const dragModeAnchorMouse = (event: MouseEvent) => {
     console.log(event.clientX, event.clientY, mouseDown)

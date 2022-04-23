@@ -37,6 +37,7 @@ const Panel: React.FC<{
 
   return (
     <div className="panel">
+      drag around to load! :)
       <DragButton setColorId={props.setColorId} />
       <SwatchesPicker
         color={props.colorId ? palette[props.colorId] : undefined}
