@@ -1,5 +1,6 @@
 import { ColorResult, SwatchesPicker } from "react-color"
 import { hexToColorId, palette } from "../libs/colors"
+import { PixelChange } from "../types"
 
 const DragButton: React.FC<{
   setColorId: React.Dispatch<React.SetStateAction<number | undefined>>
@@ -7,13 +8,25 @@ const DragButton: React.FC<{
   return <button onClick={() => setColorId(undefined)}>Drag Mode</button>
 }
 
-const CommitButton: React.FC = () => {
-  return <button>Commit Changes</button>
+const CommitButton: React.FC<{
+  pixelChanges: PixelChange[]
+  setPixelChanges: React.Dispatch<React.SetStateAction<PixelChange[]>>
+}> = (props) => {
+  const commitChanges = async () => {
+    console.log(props.pixelChanges)
+
+    // whatever
+    // when confirmed, flush the changes
+    props.setPixelChanges([])
+  }
+  return <button onClick={commitChanges}>Commit Changes</button>
 }
 
 const Panel: React.FC<{
   colorId: number | undefined
   setColorId: React.Dispatch<React.SetStateAction<number | undefined>>
+  pixelChanges: PixelChange[]
+  setPixelChanges: React.Dispatch<React.SetStateAction<PixelChange[]>>
 }> = (props) => {
   const handleChange = (color: ColorResult) => {
     const newColorId = hexToColorId[color.hex]
@@ -28,7 +41,10 @@ const Panel: React.FC<{
         colors={[palette]}
         onChange={handleChange}
       />
-      <CommitButton />
+      <CommitButton
+        pixelChanges={props.pixelChanges}
+        setPixelChanges={props.setPixelChanges}
+      />
     </div>
   )
 }

@@ -57,7 +57,7 @@ const useChunk = () => {
     /*const fetchedChunk = await fetchChunk(chunkId)
     const storedChunk = fetchedChunk ? fetchedChunk : nullChunk*/
     const storedChunk = temphack()
-    const updatedChunks = { ...chunkMap, chunkId: storedChunk }
+    const updatedChunks = { ...chunkMap, [chunkId]: storedChunk }
     setChunkMap(updatedChunks)
   }
 

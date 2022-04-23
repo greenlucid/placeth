@@ -8,7 +8,7 @@ const boundChunks = (
   height: number,
   chunkSize: number,
   offset: Point
-): Point[] => {
+): { chunkIds: Point[]; rowLength: number; columnLength: number } => {
   const firstChunk = {
     x: Math.floor((offset.x - width / 2) / chunkSize),
     y: Math.floor((offset.y - height / 2) / chunkSize),
@@ -18,19 +18,22 @@ const boundChunks = (
     y: Math.ceil((offset.y + height / 2) / chunkSize),
   }
   const chunksToQuery = []
+
   for (let i = firstChunk.x; i <= lastChunk.x; i++) {
     for (let j = firstChunk.y; j <= lastChunk.y; j++) {
       chunksToQuery.push({ x: i, y: j })
     }
   }
-  return chunksToQuery
+  const rowLength = lastChunk.x + 1 - firstChunk.x
+  const columnLength = lastChunk.y + 1 - firstChunk.y
+  return { chunkIds: chunksToQuery, rowLength, columnLength }
 }
 
 const renderChunk = (
   context: CanvasRenderingContext2D,
   corner: Point,
   chunkSize: number,
-  pixelSize: number,
+  cellSize: number,
   chunk: Chunk | undefined
 ): void => {
   if (chunk === undefined) {
@@ -46,10 +49,10 @@ const renderChunk = (
         const pixel = pixels[i * 8 + j]
         context.fillStyle = pixel.color
         const pixelCorner = {
-          x: corner.x + i * pixelSize,
-          y: corner.y + j * pixelSize,
+          x: corner.x + i * cellSize,
+          y: corner.y + j * cellSize,
         }
-        context.fillRect(pixelCorner.x, pixelCorner.y, pixelSize, pixelSize)
+        context.fillRect(pixelCorner.x, pixelCorner.y, cellSize, cellSize)
       }
     }
   }
@@ -64,24 +67,65 @@ const renderCanvas = (
   const cellSize = 15
   const chunkSize = cellSize * 8
   const chunksToQuery = boundChunks(width, height, chunkSize, offset)
-  const chunks = chunksToQuery.map((c) => getChunk(c))
+  const chunks = chunksToQuery.chunkIds.map((c) => getChunk(c))
+  const firstChunkCoords = {
+    x:
+      offset.x -
+      Math.floor(offset.x / chunkSize) * chunkSize -
+      (Math.floor(
+        Math.floor(offset.x / chunkSize) -
+          offset.x / chunkSize +
+          width / (chunkSize * 2)
+      ) +
+        1) *
+        chunkSize,
 
+    y:
+      offset.y -
+      Math.floor(offset.y / chunkSize) * chunkSize -
+      (Math.floor(
+        Math.floor(offset.y / chunkSize) -
+          offset.y / chunkSize +
+          height / (chunkSize * 2)
+      ) +
+        1) *
+        chunkSize,
+  }
+  console.log("renderAttempt", chunksToQuery.chunkIds, firstChunkCoords)
+  const firstChunkId = chunksToQuery.chunkIds[0]
+  for (let i = 0; i < chunks.length; i++) {
+    const chunkId = chunksToQuery.chunkIds[i]
+    const chunk = chunks[i]
+    const chunkDiff = {
+      x: chunkId.x - firstChunkId.x,
+      y: chunkId.y - firstChunkId.y
+    }
+    const chunkCorner = {
+      x: firstChunkCoords.x + chunkDiff.x * chunkSize,
+      y: firstChunkCoords.y + chunkDiff.y * chunkSize,
+    }
+    renderChunk(context, chunkCorner, chunkSize, cellSize, chunk)
+  }
 }
 
-const Canvas: React.FC<{ height: number; width: number, colorId: number | undefined }> = (props) => {
+const Canvas: React.FC<{
+  height: number
+  width: number
+  colorId: number | undefined
+}> = (props) => {
   const canvasRef = useRef(null)
   const getChunk = useChunk()
   const [canvasOffset, setCanvasOffset] = useState<Point>({ x: 0, y: 0 })
   const [anchorPoint, setAnchorPoint] = useState<Point>({ x: 0, y: 0 })
   const [mouseDown, setMouseDown] = useState<boolean>(false)
 
-  const anchorMouse = (event: MouseEvent) => {
+  const dragModeAnchorMouse = (event: MouseEvent) => {
     console.log(event.clientX, event.clientY, mouseDown)
     setAnchorPoint({ x: event.clientX, y: event.clientY })
     setMouseDown(true)
   }
 
-  const moveMouse = (event: MouseEvent) => {
+  const dragModeMoveMouse = (event: MouseEvent) => {
     if (mouseDown) {
       const anchorDistance = {
         x: event.clientX - anchorPoint.x,
@@ -96,12 +140,25 @@ const Canvas: React.FC<{ height: number; width: number, colorId: number | undefi
     }
   }
 
+  const paintModeAnchorMouse = (event: MouseEvent) => {
+    throw Error("todo")
+  }
+
+  const paintModeMoveMouse = (event: MouseEvent) => {
+    throw Error("todo")
+  }
+
   useEffect(() => {
     const canvas = canvasRef.current as any
     if (!canvas) return
     const context = canvas.getContext("2d") as CanvasRenderingContext2D
     renderCanvas(context, canvasOffset, getChunk)
   }, [canvasOffset])
+
+  const [anchorMouse, moveMouse] =
+    props.colorId === undefined
+      ? [dragModeAnchorMouse, dragModeMoveMouse]
+      : [paintModeAnchorMouse, paintModeMoveMouse]
 
   return (
     <canvas
