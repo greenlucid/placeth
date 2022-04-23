@@ -1,5 +1,36 @@
-import { PixelChange } from "../types";
+import { PixelChange, PixelChangesMap, Point } from "../types"
 import { Bytes } from "ethers"
+
+const addLeadingZeroes = (n: number): string => {
+  const seekedLength = 5
+  const sn = n.toString()
+  const leadingZeroes = "0".repeat(seekedLength - sn.length)
+  return `${leadingZeroes}${sn}`
+}
+
+export const pointToString = (p: Point): string => {
+  return `${addLeadingZeroes(p.x)}-${addLeadingZeroes(p.y)}`
+}
+
+const stringToPoint = (s: string): Point => {
+  const x = Number.parseInt(s.substring(0, 5))
+  const y = Number.parseInt(s.substring(6))
+  return { x, y }
+}
+
+export const pixelChangesMapToArr = (
+  pixelChangesMap: PixelChangesMap
+): PixelChange[] => {
+  const keys = Object.keys(pixelChangesMap)
+  const pixelChanges: PixelChange[] = []
+  for (const key of keys) {
+    const p = stringToPoint(key)
+    const c = pixelChangesMap[key]
+    const pixelChange = {p, c}
+    pixelChanges.push(pixelChange)
+  }
+  return pixelChanges
+}
 
 const encodePixelChanges = (pixelChanges: PixelChange[]): Bytes => {
   const bytes = []

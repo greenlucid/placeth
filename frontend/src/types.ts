@@ -1,5 +1,4 @@
 import { Bytes } from "ethers"
-import { RGBColor } from "react-color"
 
 export type Point = {
   x: number,
@@ -10,6 +9,8 @@ export type PixelChange = {
   p: Point,
   c: number
 }
+
+export type PixelChangesMap = { [p: string]: number}
 
 export type Chunk = {
   chunkdata: Bytes,

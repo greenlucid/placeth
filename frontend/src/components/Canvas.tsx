@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react"
 import conf from "../config"
 import useChunk from "../hooks/useChunk"
 import chunkToColors from "../libs/decode-chunk"
-import { Chunk, PixelChange, Point } from "../types"
+import { pointToString } from "../libs/pixel-changes"
+import { Chunk, PixelChange, PixelChangesMap, Point } from "../types"
 
 const boundChunks = (
   width: number,
@@ -112,8 +113,8 @@ const Canvas: React.FC<{
   height: number
   width: number
   colorId: number | undefined
-  pixelChanges: PixelChange[]
-  setPixelChanges: React.Dispatch<React.SetStateAction<PixelChange[]>>
+  pixelChangesMap: PixelChangesMap
+  setPixelChangesMap: React.Dispatch<React.SetStateAction<PixelChangesMap>>
 }> = ({ height, width, ...props }) => {
   const canvasRef = useRef(null)
   const getChunk = useChunk()
@@ -180,20 +181,24 @@ const Canvas: React.FC<{
 
   const paintModeAnchorMouse = (event: MouseEvent) => {
     const p = getAbsoluteCellPos(event)
-    const pixelChange: PixelChange = { c: props.colorId as number, p }
-    const newPixelChanges = [...props.pixelChanges, pixelChange]
-    props.setPixelChanges(newPixelChanges)
-    console.log(newPixelChanges)
+    const pointKey = pointToString(p)
+    const newPixelChangesMap = {
+      ...props.pixelChangesMap,
+      [pointKey]: props.colorId as number,
+    }
+    props.setPixelChangesMap(newPixelChangesMap)
     setMouseDown(true)
   }
 
   const paintModeMoveMouse = (event: MouseEvent) => {
     if (mouseDown) {
       const p = getAbsoluteCellPos(event)
-      const pixelChange: PixelChange = { c: props.colorId as number, p }
-      const newPixelChanges = [...props.pixelChanges, pixelChange]
-      props.setPixelChanges(newPixelChanges)
-      console.log(newPixelChanges)
+      const pointKey = pointToString(p)
+      const newPixelChangesMap = {
+        ...props.pixelChangesMap,
+        [pointKey]: props.colorId as number,
+      }
+      props.setPixelChangesMap(newPixelChangesMap)
     }
   }
 
