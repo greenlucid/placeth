@@ -1,6 +1,6 @@
 import { ColorResult, SwatchesPicker } from "react-color"
 import { hexToColorId, palette } from "../libs/colors"
-import { pixelChangesMapToArr } from "../libs/pixel-changes"
+import encodePixelChanges, { pixelChangesMapToArr } from "../libs/pixel-changes"
 import { PixelChangesMap } from "../types"
 
 const DragButton: React.FC<{
@@ -15,7 +15,8 @@ const CommitButton: React.FC<{
 }> = (props) => {
   const commitChanges = async () => {
     const pixelChanges = pixelChangesMapToArr(props.pixelChangesMap)
-    console.log(pixelChanges)
+    const calldata = encodePixelChanges(pixelChanges)
+    console.log(calldata)
 
     // whatever
     // when confirmed, flush the changes
@@ -48,6 +49,7 @@ const Panel: React.FC<{
         pixelChangesMap={props.pixelChangesMap}
         setPixelChangesMap={props.setPixelChangesMap}
       />
+      <a href="/help">HELP</a>
     </div>
   )
 }

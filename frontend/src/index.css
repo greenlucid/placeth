@@ -19,4 +19,6 @@ code {
   width: 10%;
   left: 2%;
   top: 5%;
+  background-blend-mode: darken;
+  background-color: blanchedalmond;
 }
