@@ -1,0 +1,241 @@
+{
+	"compiler": {
+		"version": "0.8.7+commit.e28d00a7"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "question_id",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "answer",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "payee_if_wrong",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "last_history_hash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "last_answer_or_commitment_id",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "last_answerer",
+						"type": "address"
+					}
+				],
+				"name": "assignWinnerAndSubmitAnswerByArbitrator",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "commitment_id",
+						"type": "bytes32"
+					}
+				],
+				"name": "commitments",
+				"outputs": [
+					{
+						"internalType": "uint32",
+						"name": "",
+						"type": "uint32"
+					},
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "",
+						"type": "bytes32"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "question_id",
+						"type": "bytes32"
+					}
+				],
+				"name": "getHistoryHash",
+				"outputs": [
+					{
+						"internalType": "bytes32",
+						"name": "",
+						"type": "bytes32"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "question_id",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "requester",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "max_previous",
+						"type": "uint256"
+					}
+				],
+				"name": "notifyOfArbitrationRequest",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "question_id",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "answer",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "answerer",
+						"type": "address"
+					}
+				],
+				"name": "submitAnswerByArbitrator",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"details": "Required subset of https://github.com/realitio/realitio-contracts/blob/master/truffle/contracts/IRealitio.sol to implement a Realitio arbitrator.",
+			"kind": "dev",
+			"methods": {
+				"assignWinnerAndSubmitAnswerByArbitrator(bytes32,bytes32,address,bytes32,bytes32,address)": {
+					"details": "Doesn't require (or allow) a bond. Required only in v2.1.",
+					"params": {
+						"answer": "The answer, encoded into bytes32",
+						"last_answer_or_commitment_id": "The last answer given, or the commitment ID if it was a commitment.",
+						"last_answerer": "The address that supplied the last answer",
+						"last_history_hash": "The history hash before the final one",
+						"payee_if_wrong": "The account to by credited as winner if the last answer given is wrong, usually the account that paid the arbitrator",
+						"question_id": "The ID of the question"
+					}
+				},
+				"commitments(bytes32)": {
+					"details": "Required only in v2.0.",
+					"params": {
+						"commitment_id": "The ID of the commitment."
+					},
+					"returns": {
+						"_0": "Time after which the committed answer can be revealed.",
+						"_1": "Whether the commitment has already been revealed or not.",
+						"_2": "The committed answer, encoded as bytes32."
+					}
+				},
+				"getHistoryHash(bytes32)": {
+					"details": "Required only in v2.0.Updated on each answer, then rewound as each is claimed.",
+					"params": {
+						"question_id": "The ID of the question."
+					}
+				},
+				"notifyOfArbitrationRequest(bytes32,address,uint256)": {
+					"details": "The arbitrator contract is trusted to only call this if they've been paid, and tell us who paid them.",
+					"params": {
+						"max_previous": "If specified, reverts if a bond higher than this was submitted after you sent your transaction.",
+						"question_id": "The ID of the question",
+						"requester": "The account that requested arbitration"
+					}
+				},
+				"submitAnswerByArbitrator(bytes32,bytes32,address)": {
+					"details": "Doesn't require (or allow) a bond. Required only in v2.0. If the current final answer is correct, the account should be whoever submitted it. If the current final answer is wrong, the account should be whoever paid for arbitration. However, the answerer stipulations are not enforced by the contract.",
+					"params": {
+						"answer": "The answer, encoded into bytes32.",
+						"answerer": "The account credited with this answer for the purpose of bond claims.",
+						"question_id": "The ID of the question."
+					}
+				}
+			},
+			"title": "IRealitio",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {
+				"assignWinnerAndSubmitAnswerByArbitrator(bytes32,bytes32,address,bytes32,bytes32,address)": {
+					"notice": "Submit the answer for a question, for use by the arbitrator, working out the appropriate winner based on the last answer details."
+				},
+				"commitments(bytes32)": {
+					"notice": "Returns the commitment info by its id. Required before calling submitAnswerByArbitrator to make sure history is correct."
+				},
+				"getHistoryHash(bytes32)": {
+					"notice": "Returns the history hash of the question. Required before calling submitAnswerByArbitrator to make sure history is correct."
+				},
+				"notifyOfArbitrationRequest(bytes32,address,uint256)": {
+					"notice": "Notify the contract that the arbitrator has been paid for a question, freezing it pending their decision."
+				},
+				"submitAnswerByArbitrator(bytes32,bytes32,address)": {
+					"notice": "Submit the answer for a question, for use by the arbitrator."
+				}
+			},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/IRealitio.sol": "IRealitio"
+		},
+		"evmVersion": "london",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/IRealitio.sol": {
+			"keccak256": "0x3c6ca2379680a5cb9dcd948bfa75fd9eac17351acac281520b4682ae4ffc1db8",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://4ac177bee407bcc3ca0b544d10f00cd6ee648ba8e2f290ced1c172029e23eee2",
+				"dweb:/ipfs/QmYNxc2TiE9rdGmXw7FGGdETLvEsWQrC8kmFURmCKzJbzA"
+			]
+		}
+	},
+	"version": 1
+}

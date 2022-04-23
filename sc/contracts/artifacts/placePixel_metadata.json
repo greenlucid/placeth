@@ -1,0 +1,180 @@
+{
+	"compiler": {
+		"version": "0.8.7+commit.e28d00a7"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_costPerPixel",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [],
+				"name": "arbitrator",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "challengePeriod",
+				"outputs": [
+					{
+						"internalType": "uint32",
+						"name": "",
+						"type": "uint32"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes",
+						"name": "_pixels",
+						"type": "bytes"
+					}
+				],
+				"name": "changePixels",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "costPerPixel",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint16",
+						"name": "_x",
+						"type": "uint16"
+					},
+					{
+						"internalType": "uint16",
+						"name": "_y",
+						"type": "uint16"
+					},
+					{
+						"internalType": "uint16",
+						"name": "_xx",
+						"type": "uint16"
+					},
+					{
+						"internalType": "uint16",
+						"name": "_yy",
+						"type": "uint16"
+					}
+				],
+				"name": "lock",
+				"outputs": [
+					{
+						"internalType": "bytes32",
+						"name": "qID",
+						"type": "bytes32"
+					}
+				],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "reality",
+				"outputs": [
+					{
+						"internalType": "contract RealityETH_v3_0",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/placePixelRealitioFirst.sol": "placePixel"
+		},
+		"evmVersion": "london",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"@openzeppelin/contracts/utils/Strings.sol": {
+			"keccak256": "0x32c202bd28995dd20c4347b7c6467a6d3241c74c8ad3edcbb610cd9205916c45",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8179c356adb19e70d6b31a1eedc8c5c7f0c00e669e2540f4099e3844c6074d30",
+				"dweb:/ipfs/QmWFbivarEobbqhS1go64ootVuHfVohBseerYy9FTEd1W2"
+			]
+		},
+		"@reality.eth/contracts/development/contracts/BalanceHolder.sol": {
+			"keccak256": "0x348d1ec428ae131817aa4d380fab4609ff129b173b079e21e4ee43009c6d578a",
+			"license": "GPL-3.0-only",
+			"urls": [
+				"bzz-raw://bad27b93e00ef6f4fa9aa10816765845037a1c15aa6c9f1658f2b53470d08442",
+				"dweb:/ipfs/QmRB6NHZHjB4gt6WVHnBWNPgKCmzRN9LgxgZqs9qP8W6PV"
+			]
+		},
+		"@reality.eth/contracts/development/contracts/RealityETH-3.0.sol": {
+			"keccak256": "0xfe20608599a909134ff1b28ab39ee62ce52b9eefa4c7a03b455cb250f01a4870",
+			"license": "GPL-3.0-only",
+			"urls": [
+				"bzz-raw://9f968642eb040751480fee54488024e907f834d2fc261a71557194ffa9055b83",
+				"dweb:/ipfs/Qmaju78pSWYH9pbphxKEDXtUbLC4iC8bAUKDjV8hrdgF9L"
+			]
+		},
+		"contracts/placePixelRealitioFirst.sol": {
+			"keccak256": "0xff61be68eeb01e945d00e6f0596b6c18b21dcef58acbe2a33e185fb0ea647b39",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://24b6b2e0c532f442f778258212b09075bfe8df29f89cccd729f0642f13a44301",
+				"dweb:/ipfs/QmWTjoEdd8yDGtiAppDqhDSkewCU1bQi5YZ7u8qcRXHL9S"
+			]
+		}
+	},
+	"version": 1
+}

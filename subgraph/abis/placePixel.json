@@ -1,0 +1,64 @@
+[
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "_costPerPixel", "type": "uint256" }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "arbitrator",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "challengePeriod",
+    "outputs": [{ "internalType": "uint32", "name": "", "type": "uint32" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "bytes", "name": "_pixels", "type": "bytes" }],
+    "name": "changePixels",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "costPerPixel",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint16", "name": "_x", "type": "uint16" },
+      { "internalType": "uint16", "name": "_y", "type": "uint16" },
+      { "internalType": "uint16", "name": "_xx", "type": "uint16" },
+      { "internalType": "uint16", "name": "_yy", "type": "uint16" }
+    ],
+    "name": "lock",
+    "outputs": [
+      { "internalType": "bytes32", "name": "qID", "type": "bytes32" }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "reality",
+    "outputs": [
+      {
+        "internalType": "contract RealityETH_v3_0",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
