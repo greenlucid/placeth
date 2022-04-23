@@ -1,6 +1,7 @@
 import { Chunk, Pixel, PixelChange } from "../types"
 import { palette } from "./colors"
 
+// not needed but just in case
 const nullColors: Pixel[] = [
   { color: "#ffffff" },
   { color: "#ffffff" },

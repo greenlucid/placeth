@@ -21,4 +21,4 @@ export type Pixel = {
   locked?: boolean
 }
 
-export type LocalChunk = Pixel[][]
+export type LocalChunk = Pixel[]
