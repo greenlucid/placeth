@@ -1,30 +1,5 @@
-import { useLazyQuery, useQuery,  } from "@apollo/client"
 import { useEffect, useRef, useState } from "react"
-import CHUNK from "../graphql/chunk"
 import { Chunk, Point } from "../types"
-
-const chessPattern = (context: CanvasRenderingContext2D, offset: Point) => {
-  const side = 120
-  const [width, height] = [context.canvas.width, context.canvas.height]
-  const xCells = Math.floor(width / side) + 1
-  const yCells = Math.floor(height / side) + 1
-  for (let i = 0; i < xCells; i++) {
-    for (let j = 0; j < yCells; j++) {
-      const color = (i + j) % 2 === 0 ? "#00FF00" : "#FF00FF"
-      context.fillStyle = color
-      const posAttempt = {
-        x: offset.x + i * side,
-        y: offset.y + j * side
-      }
-      const posFlanned = {
-        x: posAttempt.x < 0 ? 0 : posAttempt.x >= width ? width-1 : posAttempt.x,
-        y: posAttempt.y < 0 ? 0 : posAttempt.y >= height ? height-1 : posAttempt.y,
-      }
-      
-      context.fillRect(posFlanned.x, posFlanned.y, side, side)
-    }
-  }
-}
 
 const boundChunks =
     (width: number, height: number, chunkSize: number, offset: Point): Point[] => {
@@ -43,15 +18,6 @@ const boundChunks =
     }
   }
   return chunksToQuery
-}
-
-const useGetChunk = (x: number, y: number): Chunk | undefined | null => {
-  // null is undefined
-  // null will render white chunk
-  const chunkId = `${x}${y}`
-  const chunkQuery = useQuery(CHUNK, {variables: {chunkId}})
-  if (chunkQuery.loading) return undefined
-  if (chunkQuery.data) return chunkQuery.data.chunk
 }
 
 const useCanvas = (context: CanvasRenderingContext2D, offset: Point) => {
@@ -92,7 +58,6 @@ const Canvas: React.FC<{ height: number; width: number }> = (props) => {
     const canvas = canvasRef.current as any
     if (!canvas) return
     const context = canvas.getContext("2d") as CanvasRenderingContext2D
-    chessPattern(context, canvasOffset)
   }, [canvasOffset])
 
   return <canvas
