@@ -3,3 +3,11 @@ type Chunk @entity {
   color: Bytes!
   lock: Bytes!
 }
+type LockRequest @entity {
+  id: ID!
+  x: Int
+  y: Int
+  xx: Int
+  yy: Int
+  deleted: Boolean
+}

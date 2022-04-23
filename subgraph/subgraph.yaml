@@ -6,19 +6,25 @@ dataSources:
     name: placePixel
     network: kovan
     source:
-      address: "0x4C8bfcEEb844F910C2E363200b4699ef5dE41411"
+      address: "0xb25BA694e53ed11Fa7E1AecA8CC640F85af5b436"
       abi: placePixel
-      startBlock: 31176514
+      startBlock: 31201750 
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
         - Chunk
+        - LockRequest
       abis:
         - name: placePixel
           file: ./abis/placePixel.json
       callHandlers:
         - function: changePixels(bytes)
           handler: handleChangePixels
+      eventHandlers:
+        - event: lockRequest(bytes32,uint16,uint16,uint16,uint16)
+          handler: handleLock
+        - event: unlockRule(bytes32,uint16,uint16,uint16,uint16)
+          handler: handleUnlockRule
       file: ./src/mapping.ts
