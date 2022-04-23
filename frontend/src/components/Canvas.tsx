@@ -99,6 +99,7 @@ const renderCanvas = (
   const chunkSize = cellSize * 8
   const chunksToQuery = boundChunks(width, height, chunkSize, offset)
   const chunks = chunksToQuery.chunkIds.map((c) => getChunk(c))
+  console.log("chunks", chunks)
   const hackfirst = {
     x: 0,
     y: 0,
@@ -133,24 +134,34 @@ const Canvas: React.FC<{
   colorId: number | undefined
   pixelChangesMap: PixelChangesMap
   setPixelChangesMap: React.Dispatch<React.SetStateAction<PixelChangesMap>>
+  lockingArea:
+    | {
+        a: Point
+        b: Point
+      }
+    | undefined
+  setLockingArea: React.Dispatch<
+    React.SetStateAction<
+      | {
+          a: Point
+          b: Point
+        }
+      | undefined
+    >
+  >
+  cursorMode: string
+  setCursorMode: React.Dispatch<React.SetStateAction<string>>
 }> = ({ height, width, ...props }) => {
   const canvasRef = useRef(null)
   const getChunk = useChunk()
   const [canvasOffset, setCanvasOffset] = useState<Point>({ x: 0, y: 0 })
   const [anchorPoint, setAnchorPoint] = useState<Point>({ x: 0, y: 0 })
   const [mouseDown, setMouseDown] = useState<boolean>(false)
-  const [context, setContext] = useState<CanvasRenderingContext2D>()
 
   useEffect(() => {
     const canvas = canvasRef.current as any
     if (canvas) {
       const context = canvas.getContext("2d") as CanvasRenderingContext2D
-      setContext(context)
-    }
-  }, [canvasRef])
-
-  const handleUpdate = () => {
-    if (context) {
       renderCanvas(
         width,
         height,
@@ -160,23 +171,9 @@ const Canvas: React.FC<{
         props.pixelChangesMap
       )
     }
-  }
-
-  useEffect(() => {
-    handleUpdate()
-  }, [context, canvasOffset, props.pixelChangesMap])
-
-  // https://stackoverflow.com/questions/65049812
-  useEffect(() => {
-    const interval = setInterval(() => {
-      handleUpdate()
-    }, 1_000)
-
-    return () => clearInterval(interval)
-  }, [])
+  }, [canvasOffset, props.pixelChangesMap])
 
   const dragModeAnchorMouse = (event: MouseEvent) => {
-    console.log(event.clientX, event.clientY, mouseDown)
     setAnchorPoint({ x: event.clientX, y: event.clientY })
     setMouseDown(true)
   }
@@ -237,10 +234,36 @@ const Canvas: React.FC<{
     }
   }
 
-  const [anchorMouse, moveMouse] =
-    props.colorId === undefined
-      ? [dragModeAnchorMouse, dragModeMoveMouse]
-      : [paintModeAnchorMouse, paintModeMoveMouse]
+  const eraseModeAnchorMouse = (event: MouseEvent) => {
+    const p = getAbsoluteCellPos(event)
+    const pointKey = pointToString(p)
+    const newPixelChangesMap = {
+      ...props.pixelChangesMap,
+      [pointKey]: undefined,
+    }
+    props.setPixelChangesMap(newPixelChangesMap)
+    setMouseDown(true)
+  }
+
+  const eraseModeMoveMouse = (event: MouseEvent) => {
+    if (mouseDown) {
+      const p = getAbsoluteCellPos(event)
+      const pointKey = pointToString(p)
+      const newPixelChangesMap = {
+        ...props.pixelChangesMap,
+        [pointKey]: undefined,
+      }
+      props.setPixelChangesMap(newPixelChangesMap)
+    }
+  }
+
+  const modeHandlers = {
+    drag: [dragModeAnchorMouse, dragModeMoveMouse],
+    paint: [paintModeAnchorMouse, paintModeMoveMouse],
+    erase: [eraseModeAnchorMouse, eraseModeMoveMouse]
+  }
+  // @ts-ignore
+  const [anchorMouse, moveMouse] = modeHandlers[props.cursorMode]
 
   return (
     <canvas

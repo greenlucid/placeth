@@ -13,3 +13,8 @@ npx hardhat node
 node scripts/sample-script.js
 npx hardhat help
 ```
+
+
+# Deployment
+
+- Kovan: https://kovan.etherscan.io/address/0xb25ba694e53ed11fa7e1aeca8cc640f85af5b436

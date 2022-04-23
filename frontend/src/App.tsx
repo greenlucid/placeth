@@ -1,30 +1,21 @@
-import { useState } from "react"
 import "./App.css"
-import Canvas from "./components/Canvas"
-import Panel from "./components/Panel"
-import { PixelChangesMap, Point } from "./types"
+import { BrowserRouter, Route, Routes } from "react-router-dom"
+import Placeth from "./pages/Placeth"
+import { Fragment } from "react"
+import Help from "./pages/Help"
+import Lockings from "./pages/Lockings"
 
 function App() {
-  const [colorId, setColorId] = useState<number | undefined>(undefined)
-  const [pixelChangesMap, setPixelChangesMap] = useState<PixelChangesMap>({})
-
-  console.log("current color is", colorId)
   return (
-    <div>
-      <Panel
-        colorId={colorId}
-        setColorId={setColorId}
-        pixelChangesMap={pixelChangesMap}
-        setPixelChangesMap={setPixelChangesMap}
-      />
-      <Canvas
-        colorId={colorId}
-        height={window.innerHeight}
-        width={window.innerWidth}
-        pixelChangesMap={pixelChangesMap}
-        setPixelChangesMap={setPixelChangesMap}
-      />
-    </div>
+    <BrowserRouter>
+      <Fragment>
+        <Routes>
+          <Route path="/help" element={<Help />}/>
+          <Route path="/lockings" element={<Lockings />}/>
+          <Route path="/" element={<Placeth />} />
+        </Routes>
+      </Fragment>
+    </BrowserRouter>
   )
 }
 
