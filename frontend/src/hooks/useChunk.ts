@@ -62,7 +62,7 @@ const useChunk = () => {
   const [chunkMap, setChunkMap] = useState<ChunkMap>({})
 
   const updateChunks = async (chunkId: string) => {
-    const fetchedChunk = await fetchChunk(chunkId)
+    const fetchedChunk = await temphack()
     const storedChunk = fetchedChunk
       ? fetchedChunk
       : { ...nullChunk, fetchedIn: new Date().getTime() }

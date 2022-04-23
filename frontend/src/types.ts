@@ -35,3 +35,13 @@ export type Locking = {
   requester: string
   timestamp: number
 }
+
+type ChunkMap = { [chunkId: string]: LocalChunk | undefined }
+
+export interface State {
+  cursorMode: string
+  colorId: number
+  pixelChangesMap: PixelChangesMap
+  chunkMap: ChunkMap
+  lockingArea: { start: Point; end: Point } | undefined
+}

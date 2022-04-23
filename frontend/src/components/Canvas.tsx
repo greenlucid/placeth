@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react"
+import { useDispatch, useSelector } from "react-redux"
 import conf from "../config"
 import useChunk from "../hooks/useChunk"
 import { palette } from "../libs/colors"
 import chunkToColors, { changesOverlay } from "../libs/decode-chunk"
 import { pointToString } from "../libs/pixel-changes"
-import { Chunk, PixelChange, PixelChangesMap, Point } from "../types"
+import { loadAddPixelChange } from "../redux/actions"
+import { Chunk, PixelChange, PixelChangesMap, Point, State } from "../types"
 
 const boundChunks = (
   width: number,
@@ -131,27 +133,10 @@ const relativeCellCoords = (mousePoint: Point): Point => {
 const Canvas: React.FC<{
   height: number
   width: number
-  colorId: number | undefined
-  pixelChangesMap: PixelChangesMap
-  setPixelChangesMap: React.Dispatch<React.SetStateAction<PixelChangesMap>>
-  lockingArea:
-    | {
-        a: Point
-        b: Point
-      }
-    | undefined
-  setLockingArea: React.Dispatch<
-    React.SetStateAction<
-      | {
-          a: Point
-          b: Point
-        }
-      | undefined
-    >
-  >
-  cursorMode: string
-  setCursorMode: React.Dispatch<React.SetStateAction<string>>
-}> = ({ height, width, ...props }) => {
+}> = ({ height, width }) => {
+  const { pixelChangesMap, colorId, cursorMode } = useSelector<State, State>((state) => state)
+  const dispatch = useDispatch()
+
   const canvasRef = useRef(null)
   const getChunk = useChunk()
   const [canvasOffset, setCanvasOffset] = useState<Point>({ x: 0, y: 0 })
@@ -168,10 +153,10 @@ const Canvas: React.FC<{
         context,
         canvasOffset,
         getChunk,
-        props.pixelChangesMap
+        pixelChangesMap
       )
     }
-  }, [canvasOffset, props.pixelChangesMap])
+  }, [canvasOffset, pixelChangesMap])
 
   const dragModeAnchorMouse = (event: MouseEvent) => {
     setAnchorPoint({ x: event.clientX, y: event.clientY })
@@ -213,57 +198,37 @@ const Canvas: React.FC<{
 
   const paintModeAnchorMouse = (event: MouseEvent) => {
     const p = getAbsoluteCellPos(event)
-    const pointKey = pointToString(p)
-    const newPixelChangesMap = {
-      ...props.pixelChangesMap,
-      [pointKey]: props.colorId as number,
-    }
-    props.setPixelChangesMap(newPixelChangesMap)
+    dispatch(loadAddPixelChange(p, colorId))
     setMouseDown(true)
   }
 
   const paintModeMoveMouse = (event: MouseEvent) => {
     if (mouseDown) {
       const p = getAbsoluteCellPos(event)
-      const pointKey = pointToString(p)
-      const newPixelChangesMap = {
-        ...props.pixelChangesMap,
-        [pointKey]: props.colorId as number,
-      }
-      props.setPixelChangesMap(newPixelChangesMap)
+      dispatch(loadAddPixelChange(p, colorId))
     }
   }
 
   const eraseModeAnchorMouse = (event: MouseEvent) => {
     const p = getAbsoluteCellPos(event)
-    const pointKey = pointToString(p)
-    const newPixelChangesMap = {
-      ...props.pixelChangesMap,
-      [pointKey]: undefined,
-    }
-    props.setPixelChangesMap(newPixelChangesMap)
+    dispatch(loadAddPixelChange(p, undefined))
     setMouseDown(true)
   }
 
   const eraseModeMoveMouse = (event: MouseEvent) => {
     if (mouseDown) {
       const p = getAbsoluteCellPos(event)
-      const pointKey = pointToString(p)
-      const newPixelChangesMap = {
-        ...props.pixelChangesMap,
-        [pointKey]: undefined,
-      }
-      props.setPixelChangesMap(newPixelChangesMap)
+      dispatch(loadAddPixelChange(p, undefined))
     }
   }
 
   const modeHandlers = {
     drag: [dragModeAnchorMouse, dragModeMoveMouse],
     paint: [paintModeAnchorMouse, paintModeMoveMouse],
-    erase: [eraseModeAnchorMouse, eraseModeMoveMouse]
+    erase: [eraseModeAnchorMouse, eraseModeMoveMouse],
   }
   // @ts-ignore
-  const [anchorMouse, moveMouse] = modeHandlers[props.cursorMode]
+  const [anchorMouse, moveMouse] = modeHandlers[cursorMode]
 
   return (
     <canvas
