@@ -64,3 +64,81 @@ export class Chunk extends Entity {
     this.set("lock", Value.fromBytes(value));
   }
 }
+
+export class LockRequest extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save LockRequest entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        "Cannot save LockRequest entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
+      );
+      store.set("LockRequest", id.toString(), this);
+    }
+  }
+
+  static load(id: string): LockRequest | null {
+    return changetype<LockRequest | null>(store.get("LockRequest", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get x(): i32 {
+    let value = this.get("x");
+    return value!.toI32();
+  }
+
+  set x(value: i32) {
+    this.set("x", Value.fromI32(value));
+  }
+
+  get y(): i32 {
+    let value = this.get("y");
+    return value!.toI32();
+  }
+
+  set y(value: i32) {
+    this.set("y", Value.fromI32(value));
+  }
+
+  get xx(): i32 {
+    let value = this.get("xx");
+    return value!.toI32();
+  }
+
+  set xx(value: i32) {
+    this.set("xx", Value.fromI32(value));
+  }
+
+  get yy(): i32 {
+    let value = this.get("yy");
+    return value!.toI32();
+  }
+
+  set yy(value: i32) {
+    this.set("yy", Value.fromI32(value));
+  }
+
+  get deleted(): boolean {
+    let value = this.get("deleted");
+    return value!.toBoolean();
+  }
+
+  set deleted(value: boolean) {
+    this.set("deleted", Value.fromBoolean(value));
+  }
+}
