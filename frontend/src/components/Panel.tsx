@@ -1,12 +1,38 @@
 import { ColorResult, SwatchesPicker } from "react-color"
 import { hexToColorId, palette } from "../libs/colors"
 import encodePixelChanges, { pixelChangesMapToArr } from "../libs/pixel-changes"
-import { PixelChangesMap } from "../types"
+import { PixelChangesMap, Point } from "../types"
 
 const DragButton: React.FC<{
+  setCursorMode: React.Dispatch<React.SetStateAction<string>>
   setColorId: React.Dispatch<React.SetStateAction<number | undefined>>
-}> = ({ setColorId }) => {
-  return <button onClick={() => setColorId(undefined)}>Drag Mode</button>
+}> = ({ setCursorMode, setColorId }) => {
+  return (
+    <button
+      onClick={() => {
+        setColorId(undefined)
+        setCursorMode("drag")
+      }}
+    >
+      Drag Mode
+    </button>
+  )
+}
+
+const EraseButton: React.FC<{
+  setCursorMode: React.Dispatch<React.SetStateAction<string>>
+  setColorId: React.Dispatch<React.SetStateAction<number | undefined>>
+}> = ({ setCursorMode, setColorId }) => {
+  return (
+    <button
+      onClick={() => {
+        setColorId(undefined)
+        setCursorMode("erase")
+      }}
+    >
+      Erase Mode
+    </button>
+  )
 }
 
 const CommitButton: React.FC<{
@@ -30,16 +56,41 @@ const Panel: React.FC<{
   setColorId: React.Dispatch<React.SetStateAction<number | undefined>>
   pixelChangesMap: PixelChangesMap
   setPixelChangesMap: React.Dispatch<React.SetStateAction<PixelChangesMap>>
+  lockingArea:
+    | {
+        a: Point
+        b: Point
+      }
+    | undefined
+  setLockingArea: React.Dispatch<
+    React.SetStateAction<
+      | {
+          a: Point
+          b: Point
+        }
+      | undefined
+    >
+  >
+  cursorMode: string
+  setCursorMode: React.Dispatch<React.SetStateAction<string>>
 }> = (props) => {
   const handleChange = (color: ColorResult) => {
     const newColorId = hexToColorId[color.hex]
     props.setColorId(newColorId)
+    props.setCursorMode("paint")
   }
 
   return (
     <div className="panel">
       drag around to load! :)
-      <DragButton setColorId={props.setColorId} />
+      <DragButton
+        setCursorMode={props.setCursorMode}
+        setColorId={props.setColorId}
+      />
+      <EraseButton
+        setCursorMode={props.setCursorMode}
+        setColorId={props.setColorId}
+      />
       <SwatchesPicker
         color={props.colorId ? palette[props.colorId] : undefined}
         colors={[palette]}

@@ -10,7 +10,7 @@ export type PixelChange = {
   c: number
 }
 
-export type PixelChangesMap = { [p: string]: number }
+export type PixelChangesMap = { [p: string]: number | undefined }
 
 export interface Chunk {
   chunkdata: Bytes

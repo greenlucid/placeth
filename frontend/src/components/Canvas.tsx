@@ -134,6 +134,23 @@ const Canvas: React.FC<{
   colorId: number | undefined
   pixelChangesMap: PixelChangesMap
   setPixelChangesMap: React.Dispatch<React.SetStateAction<PixelChangesMap>>
+  lockingArea:
+    | {
+        a: Point
+        b: Point
+      }
+    | undefined
+  setLockingArea: React.Dispatch<
+    React.SetStateAction<
+      | {
+          a: Point
+          b: Point
+        }
+      | undefined
+    >
+  >
+  cursorMode: string
+  setCursorMode: React.Dispatch<React.SetStateAction<string>>
 }> = ({ height, width, ...props }) => {
   const canvasRef = useRef(null)
   const getChunk = useChunk()
@@ -217,10 +234,36 @@ const Canvas: React.FC<{
     }
   }
 
-  const [anchorMouse, moveMouse] =
-    props.colorId === undefined
-      ? [dragModeAnchorMouse, dragModeMoveMouse]
-      : [paintModeAnchorMouse, paintModeMoveMouse]
+  const eraseModeAnchorMouse = (event: MouseEvent) => {
+    const p = getAbsoluteCellPos(event)
+    const pointKey = pointToString(p)
+    const newPixelChangesMap = {
+      ...props.pixelChangesMap,
+      [pointKey]: undefined,
+    }
+    props.setPixelChangesMap(newPixelChangesMap)
+    setMouseDown(true)
+  }
+
+  const eraseModeMoveMouse = (event: MouseEvent) => {
+    if (mouseDown) {
+      const p = getAbsoluteCellPos(event)
+      const pointKey = pointToString(p)
+      const newPixelChangesMap = {
+        ...props.pixelChangesMap,
+        [pointKey]: undefined,
+      }
+      props.setPixelChangesMap(newPixelChangesMap)
+    }
+  }
+
+  const modeHandlers = {
+    drag: [dragModeAnchorMouse, dragModeMoveMouse],
+    paint: [paintModeAnchorMouse, paintModeMoveMouse],
+    erase: [eraseModeAnchorMouse, eraseModeMoveMouse]
+  }
+  // @ts-ignore
+  const [anchorMouse, moveMouse] = modeHandlers[props.cursorMode]
 
   return (
     <canvas

@@ -26,8 +26,9 @@ export const pixelChangesMapToArr = (
   for (const key of keys) {
     const p = stringToPoint(key)
     const c = pixelChangesMap[key]
-    const pixelChange = {p, c}
-    pixelChanges.push(pixelChange)
+    const pixelChange = { p, c }
+    if (pixelChange.c !== undefined)
+      pixelChanges.push(pixelChange as PixelChange)
   }
   return pixelChanges
 }
