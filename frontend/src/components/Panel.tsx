@@ -35,20 +35,39 @@ const EraseButton: React.FC<{
   )
 }
 
+const DeleteChangesButton: React.FC<{
+  setPixelChangesMap: React.Dispatch<React.SetStateAction<PixelChangesMap>>
+}> = ({ setPixelChangesMap }) => {
+  return (
+    <button
+      onClick={() => {
+        setPixelChangesMap({})
+      }}
+    >
+      Delete All Changes
+    </button>
+  )
+}
+
 const CommitButton: React.FC<{
   pixelChangesMap: PixelChangesMap
   setPixelChangesMap: React.Dispatch<React.SetStateAction<PixelChangesMap>>
-}> = (props) => {
+}> = ({ pixelChangesMap, setPixelChangesMap }) => {
+  const clickable = Object.values(pixelChangesMap).length !== 0
   const commitChanges = async () => {
-    const pixelChanges = pixelChangesMapToArr(props.pixelChangesMap)
+    const pixelChanges = pixelChangesMapToArr(pixelChangesMap)
     const calldata = encodePixelChanges(pixelChanges)
     console.log(calldata)
 
     // whatever
     // when confirmed, flush the changes
-    props.setPixelChangesMap({})
+    setPixelChangesMap({})
   }
-  return <button onClick={commitChanges}>Commit Changes</button>
+  return (
+    <button disabled={!clickable} onClick={commitChanges}>
+      Commit Changes
+    </button>
+  )
 }
 
 const Panel: React.FC<{
@@ -91,6 +110,7 @@ const Panel: React.FC<{
         setCursorMode={props.setCursorMode}
         setColorId={props.setColorId}
       />
+      <DeleteChangesButton setPixelChangesMap={props.setPixelChangesMap} />
       <SwatchesPicker
         color={props.colorId ? palette[props.colorId] : undefined}
         colors={[palette]}
