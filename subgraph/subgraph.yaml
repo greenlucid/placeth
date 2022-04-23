@@ -6,7 +6,7 @@ dataSources:
     name: placePixel
     network: kovan
     source:
-      address: "0x4C8bfcEEb844F910C2E363200b4699ef5dE41411"
+      address: "0x2E4CEba7028D6dB720df6a4f47E7e645F4115f5E"
       abi: placePixel
       startBlock: 31176514
     mapping:
