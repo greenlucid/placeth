@@ -13,8 +13,8 @@ export type PixelChange = {
 export type PixelChangesMap = { [p: string]: number | undefined }
 
 export interface Chunk {
-  chunkdata: Bytes
-  locks: Bytes
+  color: Bytes
+  lock: Bytes
 }
 
 export type Pixel = {
@@ -36,7 +36,7 @@ export type Locking = {
   timestamp: number
 }
 
-type ChunkMap = { [chunkId: string]: LocalChunk | undefined }
+export type ChunkMap = { [chunkId: string]: LocalChunk | "loading" | undefined }
 
 export interface State {
   cursorMode: string

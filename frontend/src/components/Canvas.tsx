@@ -1,12 +1,22 @@
+import { AnyAction, Dispatch } from "@reduxjs/toolkit"
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import conf from "../config"
-import useChunk from "../hooks/useChunk"
 import { palette } from "../libs/colors"
-import chunkToColors, { changesOverlay } from "../libs/decode-chunk"
+import chunkToColors, {
+  changesOverlay,
+  hexStringToBytes,
+} from "../libs/decode-chunk"
 import { pointToString } from "../libs/pixel-changes"
-import { loadAddPixelChange } from "../redux/actions"
-import { Chunk, PixelChange, PixelChangesMap, Point, State } from "../types"
+import { loadAddChunk, loadAddPixelChange } from "../redux/actions"
+import {
+  Chunk,
+  ChunkMap,
+  LocalChunk,
+  PixelChangesMap,
+  Point,
+  State,
+} from "../types"
 
 const boundChunks = (
   width: number,
@@ -39,10 +49,10 @@ const renderChunk = (
   corner: Point,
   chunkSize: number,
   cellSize: number,
-  chunk: Chunk | undefined,
+  chunk: LocalChunk | "loading" | undefined,
   changes: Array<number | undefined>
 ): void => {
-  if (chunk === undefined) {
+  if (chunk === undefined || chunk === "loading") {
     // loading...
     const lightgray = "#999999"
     context.fillStyle = lightgray
@@ -94,19 +104,29 @@ const renderCanvas = (
   height: number,
   context: CanvasRenderingContext2D,
   offset: Point,
-  getChunk: (coords: Point) => Chunk | undefined,
-  pixelChangesMap: PixelChangesMap
+  chunkMap: ChunkMap,
+  fetchChunk: (chunkId: string, dispatch: Dispatch<AnyAction>) => Promise<void>,
+  pixelChangesMap: PixelChangesMap,
+  dispatch: Dispatch<AnyAction>
 ) => {
   const cellSize = conf.CELL_SIZE
   const chunkSize = cellSize * 8
   const chunksToQuery = boundChunks(width, height, chunkSize, offset)
-  const chunks = chunksToQuery.chunkIds.map((c) => getChunk(c))
-  console.log("chunks", chunks)
+  const chunkIds = chunksToQuery.chunkIds.map((chunkId) =>
+    pointToString({ x: chunkId.x + 2 ** 12, y: chunkId.y + 2 ** 12 })
+  )
+  chunkIds.forEach((chunkId) => {
+    if (chunkMap[chunkId] === undefined) {
+      fetchChunk(chunkId, dispatch)
+    }
+  })
   const hackfirst = {
     x: 0,
     y: 0,
   }
   const firstChunkId = chunksToQuery.chunkIds[0]
+
+  const chunks = chunkIds.map((chunkId) => chunkMap[chunkId])
   for (let i = 0; i < chunks.length; i++) {
     const chunkId = chunksToQuery.chunkIds[i]
     const chunk = chunks[i]
@@ -130,15 +150,63 @@ const relativeCellCoords = (mousePoint: Point): Point => {
   }
 }
 
+const nullChunk: Chunk = {
+  color: [
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255,
+  ],
+  lock: [0, 0, 0, 0, 0, 0, 0, 0],
+}
+
+const fetchChunk = async (
+  chunkId: string,
+  dispatch: Dispatch<AnyAction>
+): Promise<void> => {
+  dispatch(loadAddChunk("loading", chunkId))
+  const subgraphQuery = {
+    query: `
+      {
+        chunk(id: "${chunkId}") {
+          color
+          lock
+        }
+      }
+    `,
+  }
+  const response = await fetch(conf.SUBGRAPH_URL, {
+    method: "POST",
+    body: JSON.stringify(subgraphQuery),
+  })
+
+  const { data } = await response.json()
+  const timestamp = Math.floor(Math.random() * 256)
+  const chunk: LocalChunk = data.chunk
+    ? {
+        color: hexStringToBytes(data.chunk.color),
+        lock: hexStringToBytes(data.chunk.lock),
+        fetchedIn: timestamp,
+      }
+    : { ...nullChunk, fetchedIn: timestamp }
+  console.log("does dispatch exist", dispatch)
+  dispatch(loadAddChunk(chunk, chunkId))
+}
+
 const Canvas: React.FC<{
   height: number
   width: number
 }> = ({ height, width }) => {
-  const { pixelChangesMap, colorId, cursorMode } = useSelector<State, State>((state) => state)
+  const { pixelChangesMap, colorId, cursorMode, chunkMap } = useSelector<
+    State,
+    State
+  >((state) => state)
   const dispatch = useDispatch()
 
+  console.log(chunkMap)
+
   const canvasRef = useRef(null)
-  const getChunk = useChunk()
   const [canvasOffset, setCanvasOffset] = useState<Point>({ x: 0, y: 0 })
   const [anchorPoint, setAnchorPoint] = useState<Point>({ x: 0, y: 0 })
   const [mouseDown, setMouseDown] = useState<boolean>(false)
@@ -152,8 +220,10 @@ const Canvas: React.FC<{
         height,
         context,
         canvasOffset,
-        getChunk,
-        pixelChangesMap
+        chunkMap,
+        fetchChunk,
+        pixelChangesMap,
+        dispatch
       )
     }
   }, [canvasOffset, pixelChangesMap])

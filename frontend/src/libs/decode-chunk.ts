@@ -1,14 +1,24 @@
+import { Bytes } from "ethers"
 import { Chunk, Pixel, PixelChangesMap, Point } from "../types"
 import { palette } from "./colors"
 import { pointToString } from "./pixel-changes"
 
+export const hexStringToBytes = (s: string): Bytes => {
+  const hex = s.substring(2)
+  const bytes = []
+  for (let i = 0; i < hex.length; i+=2) {
+    bytes.push(Number.parseInt(hex.substring(i, i+2), 16))
+  }
+  return bytes
+}
+
 const chunkToColors = (chunk: Chunk): Pixel[] => {
   const pixels: Pixel[] = []
-  for (let i = 0; i < chunk.chunkdata.length; i++) {
-    const color = palette[chunk.chunkdata[i]]
+  for (let i = 0; i < chunk.color.length; i++) {
+    const color = palette[chunk.color[i]]
     const lByte = Math.floor(i / 8)
     const lOffset = i % 8
-    const locked = (chunk.locks[lByte] & (1 << (7 - lOffset))) !== 0
+    const locked = (chunk.lock[lByte] & (1 << (7 - lOffset))) !== 0
     pixels.push({ color, locked })
   }
   return pixels

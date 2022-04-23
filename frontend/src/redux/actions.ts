@@ -10,7 +10,10 @@ export const loadChangeColorId = (colorId: number | undefined) => ({
   payload: colorId,
 })
 
-export const loadAddChunk = (chunk: LocalChunk, chunkId: string) => ({
+export const loadAddChunk = (
+  chunk: LocalChunk | "loading" | undefined,
+  chunkId: string
+) => ({
   type: "placeth/addChunk",
   payload: { chunk, chunkId },
 })

@@ -17,7 +17,6 @@ const DragButton: React.FC = () => {
   return (
     <button
       onClick={() => {
-        dispatch(slice.actions.changeColorId(undefined))
         dispatch(loadChangeColorId(undefined))
         dispatch(loadChangeCursorMode("drag"))
       }}
@@ -76,6 +75,21 @@ const CommitButton: React.FC = () => {
   )
 }
 
+const empackArray = (items: any, size: number) => {  
+  const packs = []
+  items = [].concat(...items)
+
+  while (items.length) {
+    packs.push(
+      items.splice(0, size)
+    )
+  }
+
+  return packs
+}
+
+const packedPalette = empackArray(palette, 2)
+
 const Panel: React.FC = () => {
   const dispatch = useDispatch()
   const colorId = useSelector<State, number>(state => state.colorId)
@@ -94,7 +108,7 @@ const Panel: React.FC = () => {
       <DeleteChangesButton />
       <SwatchesPicker
         color={colorId ? palette[colorId] : undefined}
-        colors={[palette]}
+        colors={packedPalette}
         onChange={handleChange}
       />
       <CommitButton />
