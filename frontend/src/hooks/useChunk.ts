@@ -47,6 +47,7 @@ const temphack = (): Chunk => {
   for (let i = 0; i < 64; i++) {
     chunkdata.push(randomColor)
   }
+  chunkdata[1] = 0
   const locks = [0,0,0,0,0,0,0,0]
   return {chunkdata, locks}
 }

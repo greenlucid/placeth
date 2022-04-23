@@ -21,6 +21,8 @@ function App() {
         colorId={colorId}
         height={window.innerHeight}
         width={window.innerWidth}
+        pixelChanges={pixelChanges}
+        setPixelChanges={setPixelChanges}
       />
     </div>
   )
