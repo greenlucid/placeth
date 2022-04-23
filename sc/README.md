@@ -17,4 +17,4 @@ npx hardhat help
 
 # Deployment
 
-- Kovan: https://kovan.etherscan.io/address/0x2e4ceba7028d6db720df6a4f47e7e645f4115f5e
+- Kovan: https://kovan.etherscan.io/address/0xb25ba694e53ed11fa7e1aeca8cc640f85af5b436
