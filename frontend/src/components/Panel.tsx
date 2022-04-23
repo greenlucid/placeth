@@ -1,17 +1,25 @@
 import { ColorResult, SwatchesPicker } from "react-color"
+import { useDispatch, useSelector } from "react-redux"
 import { hexToColorId, palette } from "../libs/colors"
 import encodePixelChanges, { pixelChangesMapToArr } from "../libs/pixel-changes"
-import { PixelChangesMap, Point } from "../types"
+import {
+  loadChangeColorId,
+  loadChangeCursorMode,
+  loadDeletePixelChanges,
+} from "../redux/actions"
+import slice from "../redux/placeth"
+import { PixelChangesMap, Point, State } from "../types"
 
-const DragButton: React.FC<{
-  setCursorMode: React.Dispatch<React.SetStateAction<string>>
-  setColorId: React.Dispatch<React.SetStateAction<number | undefined>>
-}> = ({ setCursorMode, setColorId }) => {
+const DragButton: React.FC = () => {
+  const actions = slice.actions
+  console.log(actions)
+  const dispatch = useDispatch()
   return (
     <button
       onClick={() => {
-        setColorId(undefined)
-        setCursorMode("drag")
+        dispatch(slice.actions.changeColorId(undefined))
+        dispatch(loadChangeColorId(undefined))
+        dispatch(loadChangeCursorMode("drag"))
       }}
     >
       Drag Mode
@@ -19,15 +27,13 @@ const DragButton: React.FC<{
   )
 }
 
-const EraseButton: React.FC<{
-  setCursorMode: React.Dispatch<React.SetStateAction<string>>
-  setColorId: React.Dispatch<React.SetStateAction<number | undefined>>
-}> = ({ setCursorMode, setColorId }) => {
+const EraseButton: React.FC = () => {
+  const dispatch = useDispatch()
   return (
     <button
       onClick={() => {
-        setColorId(undefined)
-        setCursorMode("erase")
+        dispatch(loadChangeColorId(undefined))
+        dispatch(loadChangeCursorMode("erase"))
       }}
     >
       Erase Mode
@@ -35,13 +41,12 @@ const EraseButton: React.FC<{
   )
 }
 
-const DeleteChangesButton: React.FC<{
-  setPixelChangesMap: React.Dispatch<React.SetStateAction<PixelChangesMap>>
-}> = ({ setPixelChangesMap }) => {
+const DeleteChangesButton: React.FC = () => {
+  const dispatch = useDispatch()
   return (
     <button
       onClick={() => {
-        setPixelChangesMap({})
+        dispatch(loadDeletePixelChanges())
       }}
     >
       Delete All Changes
@@ -49,10 +54,11 @@ const DeleteChangesButton: React.FC<{
   )
 }
 
-const CommitButton: React.FC<{
-  pixelChangesMap: PixelChangesMap
-  setPixelChangesMap: React.Dispatch<React.SetStateAction<PixelChangesMap>>
-}> = ({ pixelChangesMap, setPixelChangesMap }) => {
+const CommitButton: React.FC = () => {
+  const pixelChangesMap = useSelector<State, PixelChangesMap>(
+    (state) => state.pixelChangesMap
+  )
+  const dispatch = useDispatch()
   const clickable = Object.values(pixelChangesMap).length !== 0
   const commitChanges = async () => {
     const pixelChanges = pixelChangesMapToArr(pixelChangesMap)
@@ -61,7 +67,7 @@ const CommitButton: React.FC<{
 
     // whatever
     // when confirmed, flush the changes
-    setPixelChangesMap({})
+    dispatch(loadDeletePixelChanges())
   }
   return (
     <button disabled={!clickable} onClick={commitChanges}>
@@ -70,56 +76,28 @@ const CommitButton: React.FC<{
   )
 }
 
-const Panel: React.FC<{
-  colorId: number | undefined
-  setColorId: React.Dispatch<React.SetStateAction<number | undefined>>
-  pixelChangesMap: PixelChangesMap
-  setPixelChangesMap: React.Dispatch<React.SetStateAction<PixelChangesMap>>
-  lockingArea:
-    | {
-        a: Point
-        b: Point
-      }
-    | undefined
-  setLockingArea: React.Dispatch<
-    React.SetStateAction<
-      | {
-          a: Point
-          b: Point
-        }
-      | undefined
-    >
-  >
-  cursorMode: string
-  setCursorMode: React.Dispatch<React.SetStateAction<string>>
-}> = (props) => {
+const Panel: React.FC = () => {
+  const dispatch = useDispatch()
+  const colorId = useSelector<State, number>(state => state.colorId)
+
   const handleChange = (color: ColorResult) => {
     const newColorId = hexToColorId[color.hex]
-    props.setColorId(newColorId)
-    props.setCursorMode("paint")
+    dispatch(loadChangeColorId(newColorId))
+    dispatch(loadChangeCursorMode("paint"))
   }
 
   return (
     <div className="panel">
       drag around to load! :)
-      <DragButton
-        setCursorMode={props.setCursorMode}
-        setColorId={props.setColorId}
-      />
-      <EraseButton
-        setCursorMode={props.setCursorMode}
-        setColorId={props.setColorId}
-      />
-      <DeleteChangesButton setPixelChangesMap={props.setPixelChangesMap} />
+      <DragButton />
+      <EraseButton />
+      <DeleteChangesButton />
       <SwatchesPicker
-        color={props.colorId ? palette[props.colorId] : undefined}
+        color={colorId ? palette[colorId] : undefined}
         colors={[palette]}
         onChange={handleChange}
       />
-      <CommitButton
-        pixelChangesMap={props.pixelChangesMap}
-        setPixelChangesMap={props.setPixelChangesMap}
-      />
+      <CommitButton />
       <div>
         <a href="/lockings">LOCKINGS</a>
       </div>
