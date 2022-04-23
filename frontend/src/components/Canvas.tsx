@@ -65,10 +65,10 @@ const renderCanvas = (
   const chunkSize = cellSize * 8
   const chunksToQuery = boundChunks(width, height, chunkSize, offset)
   const chunks = chunksToQuery.map((c) => getChunk(c))
-  
+
 }
 
-const Canvas: React.FC<{ height: number; width: number }> = (props) => {
+const Canvas: React.FC<{ height: number; width: number, colorId: number | undefined }> = (props) => {
   const canvasRef = useRef(null)
   const getChunk = useChunk()
   const [canvasOffset, setCanvasOffset] = useState<Point>({ x: 0, y: 0 })

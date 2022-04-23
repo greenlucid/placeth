@@ -1,19 +1,19 @@
 import { useState } from "react"
 import "./App.css"
 import Canvas from "./components/Canvas"
-import ColorPanel from "./components/ColorPanel"
+import Panel from "./components/Panel"
 import { PixelChange, Point } from "./types"
 
 function App() {
-  const [colorId, setColorId] = useState<number>(0)
+  const [colorId, setColorId] = useState<number | undefined>(undefined)
   const [pixelChanges, setPixelChanges] = useState<PixelChange[]>([])
   const [canvasOffset, setCanvasOffset] = useState<Point>({ x: 0, y: 0 })
 
   console.log("current color is", colorId)
   return (
     <div>
-      <ColorPanel colorId={colorId} setColorId={setColorId} />
-      <Canvas height={window.innerHeight} width={window.innerWidth} />
+      <Panel colorId={colorId} setColorId={setColorId} />
+      <Canvas colorId={colorId} height={window.innerHeight} width={window.innerWidth} />
     </div>
   )
 }
