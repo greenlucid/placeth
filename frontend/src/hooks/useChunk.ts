@@ -43,8 +43,9 @@ const fetchChunk = async (chunkId: string): Promise<Chunk | null> => {
 const temphack = (): Chunk => {
   // gens a random chunk for testing before subgraph
   const chunkdata = []
+  const randomColor = Math.floor(Math.random() * 256)
   for (let i = 0; i < 64; i++) {
-    chunkdata.push(Math.floor(Math.random() * 256))
+    chunkdata.push(randomColor)
   }
   const locks = [0,0,0,0,0,0,0,0]
   return {chunkdata, locks}

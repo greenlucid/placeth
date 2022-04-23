@@ -68,30 +68,10 @@ const renderCanvas = (
   const chunkSize = cellSize * 8
   const chunksToQuery = boundChunks(width, height, chunkSize, offset)
   const chunks = chunksToQuery.chunkIds.map((c) => getChunk(c))
-  const firstChunkCoords = {
-    x:
-      offset.x -
-      Math.floor(offset.x / chunkSize) * chunkSize -
-      (Math.floor(
-        Math.floor(offset.x / chunkSize) -
-          offset.x / chunkSize +
-          width / (chunkSize * 2)
-      ) +
-        1) *
-        chunkSize,
-
-    y:
-      offset.y -
-      Math.floor(offset.y / chunkSize) * chunkSize -
-      (Math.floor(
-        Math.floor(offset.y / chunkSize) -
-          offset.y / chunkSize +
-          height / (chunkSize * 2)
-      ) +
-        1) *
-        chunkSize,
+  const hackfirst = {
+    x: 0,
+    y: 0
   }
-  console.log("renderAttempt", chunksToQuery.chunkIds, firstChunkCoords)
   const firstChunkId = chunksToQuery.chunkIds[0]
   for (let i = 0; i < chunks.length; i++) {
     const chunkId = chunksToQuery.chunkIds[i]
@@ -101,8 +81,8 @@ const renderCanvas = (
       y: chunkId.y - firstChunkId.y
     }
     const chunkCorner = {
-      x: firstChunkCoords.x + chunkDiff.x * chunkSize,
-      y: firstChunkCoords.y + chunkDiff.y * chunkSize,
+      x: hackfirst.x + chunkDiff.x * chunkSize,
+      y: hackfirst.y + chunkDiff.y * chunkSize,
     }
     renderChunk(context, chunkCorner, chunkSize, cellSize, chunk)
   }
@@ -133,8 +113,8 @@ const Canvas: React.FC<{
       }
       setAnchorPoint({ x: event.clientX, y: event.clientY })
       const newOffset = {
-        x: canvasOffset.x + anchorDistance.x,
-        y: canvasOffset.y + anchorDistance.y,
+        x: canvasOffset.x - anchorDistance.x,
+        y: canvasOffset.y - anchorDistance.y,
       }
       setCanvasOffset(newOffset)
     }
