@@ -44,6 +44,44 @@ const EraseButton: React.FC = () => {
   )
 }
 
+const LockModeButton: React.FC = () => {
+  const dispatch = useDispatch()
+  return (
+    <button
+      onClick={() => {
+        dispatch(loadChangeColorId(undefined))
+        dispatch(loadChangeCursorMode("lock"))
+      }}
+    >
+      Lock Mode
+    </button>
+  )
+}
+
+const ZoomButtons: React.FC = () => {
+  const dispatch = useDispatch()
+  const cellSize = useSelector<State, number>((state) => state.cellSize)
+  return (
+    <>
+      <button
+        onClick={() => {
+          dispatch(slice.actions.changeCellSize(cellSize - 1))
+        }}
+      >
+        - Zoom
+      </button>
+      <button
+        onClick={() => {
+          dispatch(slice.actions.changeCellSize(cellSize + 1))
+        }}
+      >
+        + Zoom
+      </button>
+      Current zoom: {cellSize}
+    </>
+  )
+}
+
 const DeleteChangesButton: React.FC = () => {
   const dispatch = useDispatch()
   return (
@@ -69,7 +107,9 @@ const CommitButton: React.FC = () => {
     console.log(pixelChangesMap)
     if (!web3React.account) return
     // @ts-ignore
-    const signer = new ethers.providers.Web3Provider(window.ethereum).getSigner(web3React.account)
+    const signer = new ethers.providers.Web3Provider(window.ethereum).getSigner(
+      web3React.account
+    )
     console.log("the culprit?", signer)
     const gtcr = new ethers.Contract(
       "0xb25ba694e53ed11fa7e1aeca8cc640f85af5b436",
@@ -116,11 +156,14 @@ const Panel: React.FC = () => {
 
   return (
     <div className="panel">
-      drag around to load! :)
+      drag around to keep reloading the canvas! :)
       <DragButton />
       <EraseButton />
+      <LockModeButton />
       <DeleteChangesButton />
+      <ZoomButtons />
       <SwatchesPicker
+        className="colorPicker"
         color={colorId ? palette[colorId] : undefined}
         colors={packedPalette}
         onChange={handleChange}

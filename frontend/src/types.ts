@@ -38,10 +38,12 @@ export type Locking = {
 
 export type ChunkMap = { [chunkId: string]: LocalChunk | "loading" | undefined }
 
+export type LockingArea = { start: Point | undefined; end: Point | undefined }
 export interface State {
   cursorMode: string
   colorId: number
   pixelChangesMap: PixelChangesMap
   chunkMap: ChunkMap
-  lockingArea: { start: Point; end: Point } | undefined
+  lockingArea: LockingArea
+  cellSize: number
 }

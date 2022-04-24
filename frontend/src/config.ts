@@ -7,7 +7,7 @@ interface Config {
 const conf: Config = {
   SUBGRAPH_URL:
     "https://api.thegraph.com/subgraphs/name/shotaronowhere/placeth",
-  CELL_SIZE: 10,
+  CELL_SIZE: 30,
   EXPIRY_TIME: 15_000,
 }
 

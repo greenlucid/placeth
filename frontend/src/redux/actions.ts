@@ -18,9 +18,9 @@ export const loadAddChunk = (
   payload: { chunk, chunkId },
 })
 
-export const loadSetLockingArea = (start: Point, end: Point) => ({
+export const loadSetLockingArea = (p: Point) => ({
   type: "placeth/setLockingArea",
-  payload: { start, end },
+  payload: p
 })
 
 export const loadAddPixelChange = (p: Point, c: number | undefined) => ({
