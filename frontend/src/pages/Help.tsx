@@ -8,8 +8,7 @@ const Help: React.FC = () => {
       <p>
         You can send a bunch of pixels at the same time, no problem. It's
         preferable. Each transaction will cost ~21_000 gas, plus 80 gas per
-        pixel. Placing 250 pixels costs the same as a regular Mainnet
-        transaction.
+        pixel. Placing 250 pixels costs the same as a regular EVM base transaction.
       </p>
       <p>
         On an OR like Optimism or Arbitrum, the cost will greatly be reduced,
@@ -19,14 +18,14 @@ const Help: React.FC = () => {
       </p>
       <p>
         The UI is a bit messy, please bear with me and drag the canvas around, the
-        pixels will load.
+        pixels will only load while they're being dragged or painted.
       </p>
 
       <p>
         Pixels aren't stored in the contract, they're fetched from The Graph,
         wow!
       </p>
-      <h3>warning, below is WIP</h3>
+      <h3>warning, below is unsupported in frontend</h3>
       <p>You can lock areas!</p>
       <p>
         To do so, you'll place a deposit per pixel (unknown amount). We're not
