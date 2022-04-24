@@ -5,16 +5,25 @@ import App from "./App"
 import reportWebVitals from "./reportWebVitals"
 import { configureStore } from "@reduxjs/toolkit"
 import { Provider } from "react-redux"
-
 import slice from "./redux/placeth"
+import { Web3Provider } from "@ethersproject/providers"
+import { Web3ReactProvider } from "@web3-react/core"
 
 const store = configureStore({ reducer: slice.reducer })
+
+function getLibrary(provider: any): Web3Provider {
+  const library = new Web3Provider(provider)
+  library.pollingInterval = 12000
+  return library
+}
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement)
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-      <App />
+      <Web3ReactProvider getLibrary={getLibrary} >
+        <App />
+      </Web3ReactProvider>
     </Provider>
   </React.StrictMode>
 )

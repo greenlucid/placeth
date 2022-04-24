@@ -1,7 +1,11 @@
+import { ethers } from "ethers"
 import { ColorResult, SwatchesPicker } from "react-color"
 import { useDispatch, useSelector } from "react-redux"
 import { hexToColorId, palette } from "../libs/colors"
 import encodePixelChanges, { pixelChangesMapToArr } from "../libs/pixel-changes"
+
+import placeAbi from "../abis/place.json"
+
 import {
   loadChangeColorId,
   loadChangeCursorMode,
@@ -9,10 +13,11 @@ import {
 } from "../redux/actions"
 import slice from "../redux/placeth"
 import { PixelChangesMap, Point, State } from "../types"
+import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers"
+import { useWeb3React } from "@web3-react/core"
 
 const DragButton: React.FC = () => {
   const actions = slice.actions
-  console.log(actions)
   const dispatch = useDispatch()
   return (
     <button
@@ -54,18 +59,30 @@ const DeleteChangesButton: React.FC = () => {
 }
 
 const CommitButton: React.FC = () => {
+  const web3React = useWeb3React()
   const pixelChangesMap = useSelector<State, PixelChangesMap>(
     (state) => state.pixelChangesMap
   )
   const dispatch = useDispatch()
   const clickable = Object.values(pixelChangesMap).length !== 0
   const commitChanges = async () => {
+    console.log(web3React)
+    console.log(pixelChangesMap)
+    if (!web3React.account) return
+    // @ts-ignore
+    const signer = new ethers.providers.Web3Provider(window.ethereum).getSigner(web3React.account)
+    console.log("the culprit?", signer)
+    const gtcr = new ethers.Contract(
+      "0xb25ba694e53ed11fa7e1aeca8cc640f85af5b436",
+      placeAbi,
+      signer
+    )
+
     const pixelChanges = pixelChangesMapToArr(pixelChangesMap)
     const calldata = encodePixelChanges(pixelChanges)
     console.log(calldata)
+    await gtcr.changePixels(calldata)
 
-    // whatever
-    // when confirmed, flush the changes
     dispatch(loadDeletePixelChanges())
   }
   return (
@@ -75,14 +92,12 @@ const CommitButton: React.FC = () => {
   )
 }
 
-const empackArray = (items: any, size: number) => {  
+const empackArray = (items: any, size: number) => {
   const packs = []
   items = [].concat(...items)
 
   while (items.length) {
-    packs.push(
-      items.splice(0, size)
-    )
+    packs.push(items.splice(0, size))
   }
 
   return packs
@@ -92,7 +107,7 @@ const packedPalette = empackArray(palette, 2)
 
 const Panel: React.FC = () => {
   const dispatch = useDispatch()
-  const colorId = useSelector<State, number>(state => state.colorId)
+  const colorId = useSelector<State, number>((state) => state.colorId)
 
   const handleChange = (color: ColorResult) => {
     const newColorId = hexToColorId[color.hex]

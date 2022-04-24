@@ -15,7 +15,6 @@ const slice = createSlice({
   name: "placeth",
   reducers: {
     changeCursorMode(state, action) {
-      console.log("hello fren")
       state.cursorMode = action.payload
     },
     changeColorId(state, action) {

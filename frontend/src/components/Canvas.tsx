@@ -116,7 +116,13 @@ const renderCanvas = (
     pointToString({ x: chunkId.x + 2 ** 12, y: chunkId.y + 2 ** 12 })
   )
   chunkIds.forEach((chunkId) => {
-    if (chunkMap[chunkId] === undefined) {
+    const chunk = chunkMap[chunkId]
+    if (chunk === undefined) {
+      fetchChunk(chunkId, dispatch)
+    } else if (
+      chunk !== "loading" &&
+      chunk.fetchedIn + conf.EXPIRY_TIME < new Date().getTime()
+    ) {
       fetchChunk(chunkId, dispatch)
     }
   })
@@ -182,7 +188,7 @@ const fetchChunk = async (
   })
 
   const { data } = await response.json()
-  const timestamp = Math.floor(Math.random() * 256)
+  const timestamp = new Date().getTime()
   const chunk: LocalChunk = data.chunk
     ? {
         color: hexStringToBytes(data.chunk.color),
@@ -190,7 +196,7 @@ const fetchChunk = async (
         fetchedIn: timestamp,
       }
     : { ...nullChunk, fetchedIn: timestamp }
-  console.log("does dispatch exist", dispatch)
+  console.log(chunkId, chunk)
   dispatch(loadAddChunk(chunk, chunkId))
 }
 
@@ -203,8 +209,6 @@ const Canvas: React.FC<{
     State
   >((state) => state)
   const dispatch = useDispatch()
-
-  console.log(chunkMap)
 
   const canvasRef = useRef(null)
   const [canvasOffset, setCanvasOffset] = useState<Point>({ x: 0, y: 0 })
