@@ -22,7 +22,7 @@ contract placePixel is ERC721URIStorage {
     mapping(bytes32=>area) lockedAreaRequests;
 
     address public arbitrator = 0x29F39dE98D750eb77b5FAfb31B2837f079FcE222; // realitio kleros with appeals on gnosis chain
-    RealityETH_v3_0 public reality = RealityETH_v3_0(0xe78996a233895be74a66f451f1019ca9734205cc);
+    RealityETH_v3_0 public reality = RealityETH_v3_0(0xE78996A233895bE74a66F451f1019cA9734205cc);
 
     event lockRequest(bytes32 questionID, uint16 x, uint16 y, uint16 xx, uint16 yy);
     event unlockRule(bytes32 questionID, uint16 x, uint16 y, uint16 xx, uint16 yy);
