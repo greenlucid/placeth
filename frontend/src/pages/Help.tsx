@@ -17,7 +17,7 @@ const Help: React.FC = () => {
         them.
       </p>
       <p>
-        The UI is a bit messy, please bear with me and drag the canvas around, the
+        The UI is a bit messy, please bear w ith me and drag the canvas around, the
         pixels will only load while they're being dragged or painted.
       </p>
 
@@ -26,7 +26,7 @@ const Help: React.FC = () => {
         wow!
       </p>
       <h3>warning, below is unsupported in frontend</h3>
-      <p>You can lock areas!</p>
+      <p>You can lock areas! go to etherscan or blockscout and do it there</p>
       <p>
         To do so, you'll place a deposit per pixel (unknown amount). We're not
         keeping any of it.

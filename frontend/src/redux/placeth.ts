@@ -10,6 +10,7 @@ const initialState: State = {
   lockingArea: { start: undefined, end: undefined },
   pixelChangesMap: {},
   cellSize: conf.CELL_SIZE,
+  pointedPixel: { x: 32768, y: 32768 },
 }
 
 const slice = createSlice({
@@ -48,6 +49,9 @@ const slice = createSlice({
     },
     changeCellSize(state, action) {
       state.cellSize = action.payload
+    },
+    changePointedPixel(state, action) {
+      state.pointedPixel = action.payload
     },
   },
 })

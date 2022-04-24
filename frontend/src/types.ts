@@ -46,4 +46,5 @@ export interface State {
   chunkMap: ChunkMap
   lockingArea: LockingArea
   cellSize: number
+  pointedPixel: Point
 }
