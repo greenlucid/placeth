@@ -12,7 +12,7 @@ import {
   loadDeletePixelChanges,
 } from "../redux/actions"
 import slice from "../redux/placeth"
-import { PixelChangesMap, State } from "../types"
+import { PixelChangesMap, Point, State } from "../types"
 import { useWeb3React } from "@web3-react/core"
 
 const DragButton: React.FC = () => {
@@ -131,6 +131,15 @@ const CommitButton: React.FC = () => {
   )
 }
 
+const PointedPixel: React.FC = () => {
+  const pointedPixel = useSelector<State, Point>((state) => state.pointedPixel)
+  return (
+    <div>
+      ({pointedPixel.x}, {pointedPixel.y})
+    </div>
+  )
+}
+
 const empackArray = (items: any, size: number) => {
   const packs = []
   items = [].concat(...items)
@@ -157,6 +166,7 @@ const Panel: React.FC = () => {
   return (
     <div className="panel">
       drag around to keep reloading the canvas! :)
+      <PointedPixel />
       <DragButton />
       <EraseButton />
       <LockModeButton />

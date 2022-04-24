@@ -13,6 +13,7 @@ import {
   loadAddPixelChange,
   loadSetLockingArea,
 } from "../redux/actions"
+import slice from "../redux/placeth"
 import {
   Chunk,
   ChunkMap,
@@ -355,6 +356,12 @@ const Canvas: React.FC<{
     dispatch(loadSetLockingArea(p))
   }
 
+  const updateMousePointer = (event: MouseEvent) => {
+    const p = getAbsoluteCellPos(event, cellSize)
+    const point = {x: p.x - 2**15, y: p.y - 2**15}
+    dispatch(slice.actions.changePointedPixel(point))
+  }
+
   const modeHandlers = {
     drag: [dragModeAnchorMouse, dragModeMoveMouse],
     paint: [paintModeAnchorMouse, paintModeMoveMouse],
@@ -370,7 +377,10 @@ const Canvas: React.FC<{
       width={width}
       height={height}
       onMouseDown={anchorMouse as any}
-      onMouseMove={moveMouse as any}
+      onMouseMove={(e) => {
+        moveMouse(e)
+        updateMousePointer(e as any)
+      }}
       onMouseUp={() => setMouseDown(false)}
     />
   )
