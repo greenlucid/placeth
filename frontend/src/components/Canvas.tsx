@@ -118,6 +118,7 @@ const renderCanvas = (
   chunkIds.forEach((chunkId) => {
     const chunk = chunkMap[chunkId]
     if (chunk === undefined) {
+      dispatch(loadAddChunk("loading", chunkId))
       fetchChunk(chunkId, dispatch)
     } else if (
       chunk !== "loading" &&
@@ -171,7 +172,6 @@ const fetchChunk = async (
   chunkId: string,
   dispatch: Dispatch<AnyAction>
 ): Promise<void> => {
-  dispatch(loadAddChunk("loading", chunkId))
   const subgraphQuery = {
     query: `
       {

@@ -12,8 +12,7 @@ import {
   loadDeletePixelChanges,
 } from "../redux/actions"
 import slice from "../redux/placeth"
-import { PixelChangesMap, Point, State } from "../types"
-import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers"
+import { PixelChangesMap, State } from "../types"
 import { useWeb3React } from "@web3-react/core"
 
 const DragButton: React.FC = () => {
