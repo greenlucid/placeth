@@ -20,12 +20,15 @@ contract placePixel is ERC721URIStorage {
     uint256 public costPerPixel;
     uint32 public challengePeriod = 86400; // 1 day
     mapping(bytes32=>area) lockedAreaRequests;
+    address payable[] private devs = [payable(0x89c4ACb8B5b5B8E5B2121934B9e143569a914C80), payable(0xE7f13052Fe2bA7D038dac18De5e730542e3979bC)];
+    uint256[] devAllowance = [0,0];
 
     address public arbitrator = 0x29F39dE98D750eb77b5FAfb31B2837f079FcE222; // realitio kleros with appeals on gnosis chain
     RealityETH_v3_0 public reality = RealityETH_v3_0(0xE78996A233895bE74a66F451f1019cA9734205cc);
 
     event lockRequest(bytes32 questionID, uint16 x, uint16 y, uint16 xx, uint16 yy);
     event unlockRule(bytes32 questionID, uint16 x, uint16 y, uint16 xx, uint16 yy);
+    event nftcreated(bytes32 questionID, uint16 x, uint16 y, uint16 xx, uint16 yy);
 
     constructor(uint256 _costPerPixel) ERC721("placeth", "PLC") {
         costPerPixel = _costPerPixel;
@@ -46,7 +49,7 @@ contract placePixel is ERC721URIStorage {
         require(msg.value >= (_xx-_x+1)*(_yy-_y+1)*costPerPixel, "Insufficient deposit.");
         string memory question= string(abi.encodePacked(Strings.toString(_x),"\xE2\x90\x9F",Strings.toString(_y),"\xE2\x90\x9F",Strings.toString(_xx),"\xE2\x90\x9F",Strings.toString(_yy)));
         bytes32 questionID = reality.askQuestion(20, question, arbitrator, challengePeriod, 0, block.timestamp);
-        reality.submitAnswerFor{value: msg.value}(questionID, 0x0000000000000000000000000000000000000000000000000000000000000001, 0x0000000000000000000000000000000000000000000000000000000000000000, msg.sender);
+        reality.submitAnswerFor{value: msg.value*99/100}(questionID, 0x0000000000000000000000000000000000000000000000000000000000000001, 0x0000000000000000000000000000000000000000000000000000000000000000, msg.sender);
         lockedAreaRequests[questionID]=area({
             x: _x,
             y: _y,
@@ -56,6 +59,21 @@ contract placePixel is ERC721URIStorage {
         });
         emit lockRequest(questionID,_x,_y,_xx,_yy);
         return questionID;
+    }
+
+    function klerosPartyFeeCalculation() public{
+        uint256 amount = address(this).balance;
+        devAllowance[0] += amount/2;
+        devAllowance[1] += amount/2;
+    }
+
+    function klerosPartyFeeDistribution() public{
+        uint256 amount = devAllowance[0];
+        devAllowance[0] = 0;
+        devs[0].send(amount);
+        amount = devAllowance[1];
+        devAllowance[1] = 0;
+        devs[1].send(amount);
     }
 
     function downvote(bytes32 questionID) external payable{
@@ -83,6 +101,7 @@ contract placePixel is ERC721URIStorage {
             uint256 newItemId = _tokenIds.current();
             _mint(locked.requester, newItemId);
             _setTokenURI(newItemId, string(abi.encodePacked(Strings.toString(locked.x),"/",Strings.toString(locked.y),"/",Strings.toString(locked.xx),"/",Strings.toString(locked.yy))));
+            emit nftcreated(questionID, locked.x, locked.y, locked.xx, locked.yy);
             delete lockedAreaRequests[questionID];
         }
     }
