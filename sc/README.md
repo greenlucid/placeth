@@ -17,4 +17,6 @@ npx hardhat help
 
 # Deployment
 
-- Kovan: https://kovan.etherscan.io/address/0xb25ba694e53ed11fa7e1aeca8cc640f85af5b436
+- Gnosis Chain https://blockscout.com/xdai/mainnet/address/0x42cdC690Bf89eBe4E2A854A233BF04DC8c283Cd0/read-contract
+
+- Kovan https://kovan.etherscan.io/address/0xb25ba694e53ed11fa7e1aeca8cc640f85af5b436
