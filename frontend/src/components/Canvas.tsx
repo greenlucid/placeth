@@ -1,4 +1,5 @@
 import { AnyAction, Dispatch } from "@reduxjs/toolkit"
+import { useWeb3React } from "@web3-react/core"
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import conf from "../config"
@@ -149,11 +150,17 @@ const renderCanvas = (
   context: CanvasRenderingContext2D,
   offset: Point,
   chunkMap: ChunkMap,
-  fetchChunk: (chunkId: string, dispatch: Dispatch<AnyAction>) => Promise<void>,
+  fetchChunk: (
+    chunkId: string,
+    dispatch: Dispatch<AnyAction>,
+    chainId: number
+  ) => Promise<void>,
   pixelChangesMap: PixelChangesMap,
   dispatch: Dispatch<AnyAction>,
   lockingArea: LockingArea
 ) => {
+  const web3Context = useWeb3React()
+  const chainId = web3Context.chainId ? web3Context.chainId : 1
   const chunkSize = cellSize * 8
   const chunksToQuery = boundChunks(width, height, chunkSize, offset)
   const chunkIds = chunksToQuery.chunkIds.map((chunkId) =>
@@ -163,12 +170,12 @@ const renderCanvas = (
     const chunk = chunkMap[chunkId]
     if (chunk === undefined) {
       dispatch(loadAddChunk("loading", chunkId))
-      fetchChunk(chunkId, dispatch)
+      fetchChunk(chunkId, dispatch, chainId)
     } else if (
       chunk !== "loading" &&
       chunk.fetchedIn + conf.EXPIRY_TIME < new Date().getTime()
     ) {
-      fetchChunk(chunkId, dispatch)
+      fetchChunk(chunkId, dispatch, chainId)
     }
   })
   const hackfirst = {
@@ -215,7 +222,8 @@ const nullChunk: Chunk = {
 
 const fetchChunk = async (
   chunkId: string,
-  dispatch: Dispatch<AnyAction>
+  dispatch: Dispatch<AnyAction>,
+  chainId: number
 ): Promise<void> => {
   const subgraphQuery = {
     query: `
@@ -227,7 +235,7 @@ const fetchChunk = async (
       }
     `,
   }
-  const response = await fetch(conf.SUBGRAPH_URL, {
+  const response = await fetch(conf.SUBGRAPH_URL_MAP[chainId], {
     method: "POST",
     body: JSON.stringify(subgraphQuery),
   })
@@ -239,8 +247,9 @@ const fetchChunk = async (
         color: hexStringToBytes(data.chunk.color),
         lock: hexStringToBytes(data.chunk.lock),
         fetchedIn: timestamp,
+        rendered: false
       }
-    : { ...nullChunk, fetchedIn: timestamp }
+    : { ...nullChunk, rendered: false, fetchedIn: timestamp }
   console.log(chunkId, chunk)
   dispatch(loadAddChunk(chunk, chunkId))
 }
@@ -358,7 +367,7 @@ const Canvas: React.FC<{
 
   const updateMousePointer = (event: MouseEvent) => {
     const p = getAbsoluteCellPos(event, cellSize)
-    const point = {x: p.x - 2**15, y: p.y - 2**15}
+    const point = { x: p.x - 2 ** 15, y: p.y - 2 ** 15 }
     dispatch(slice.actions.changePointedPixel(point))
   }
 

@@ -24,6 +24,7 @@ export type Pixel = {
 
 export interface LocalChunk extends Chunk {
   fetchedIn: number
+  rendered: boolean
 }
 
 export type Locking = {
