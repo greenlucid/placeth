@@ -1,5 +1,6 @@
 import { AnyAction, Dispatch } from "@reduxjs/toolkit"
 import { useWeb3React } from "@web3-react/core"
+import { Web3ReactContextInterface } from "@web3-react/core/dist/types"
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import conf from "../config"
@@ -7,13 +8,10 @@ import { palette } from "../libs/colors"
 import chunkToColors, {
   changesOverlay,
   hexStringToBytes,
+  mockLocalChunk,
 } from "../libs/decode-chunk"
-import { pointToString } from "../libs/pixel-changes"
-import {
-  loadAddChunk,
-  loadAddPixelChange,
-  loadSetLockingArea,
-} from "../redux/actions"
+import { pointToString, stringToPoint } from "../libs/pixel-changes"
+import { loadAddPixelChange, loadSetLockingArea } from "../redux/actions"
 import slice from "../redux/placeth"
 import {
   Chunk,
@@ -30,7 +28,7 @@ const boundChunks = (
   height: number,
   chunkSize: number,
   offset: Point
-): { chunkIds: Point[]; rowLength: number; columnLength: number } => {
+): { chunkVectors: Point[]; rowLength: number; columnLength: number } => {
   const firstChunk = {
     x: Math.floor((offset.x - width / 2) / chunkSize),
     y: Math.floor((offset.y - height / 2) / chunkSize),
@@ -48,7 +46,7 @@ const boundChunks = (
   }
   const rowLength = lastChunk.x + 1 - firstChunk.x
   const columnLength = lastChunk.y + 1 - firstChunk.y
-  return { chunkIds: chunksToQuery, rowLength, columnLength }
+  return { chunkVectors: chunksToQuery, rowLength, columnLength }
 }
 
 const renderChunk = (
@@ -56,11 +54,14 @@ const renderChunk = (
   corner: Point,
   chunkSize: number,
   cellSize: number,
-  chunk: LocalChunk | "loading" | undefined,
-  changes: Array<number | undefined>
+  chunk: LocalChunk | undefined,
+  changes: Array<number | undefined>,
+  dispatch: Dispatch<AnyAction>
 ): void => {
-  if (chunk === undefined || chunk === "loading") {
+  if (chunk && chunk.rendered) return
+  if (chunk === undefined || chunk.data === undefined) {
     // loading...
+    if (chunk) dispatch(slice.actions.addChunk({ ...chunk, rendered: true }))
     const lightgray = "#999999"
     context.fillStyle = lightgray
     context.fillRect(corner.x, corner.y, chunkSize, chunkSize)
@@ -71,7 +72,8 @@ const renderChunk = (
     context.stroke()
   } else {
     // render loaded chunk
-    const pixels = chunkToColors(chunk)
+    dispatch(slice.actions.addChunk({ ...chunk, rendered: true }))
+    const pixels = chunkToColors(chunk.data)
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 8; j++) {
         const pixel = pixels[j * 8 + i] // XD
@@ -101,42 +103,32 @@ const renderChunk = (
 }
 
 const renderLockingArea = (
+  width: number,
+  height: number,
   context: CanvasRenderingContext2D,
   lockingArea: LockingArea,
-  firstChunkId: Point,
   cellSize: number
 ): void => {
-  const absoluteChunkId = {
-    x: firstChunkId.x + 2 ** 12,
-    y: firstChunkId.y + 2 ** 12,
-  }
-  const firstPixelId = {
-    x: absoluteChunkId.x * 8,
-    y: absoluteChunkId.y * 8,
-  }
   if (lockingArea.start === undefined) return
+
+  const lockingAreaStart = {
+    x: lockingArea.start.x * cellSize + width / 2,
+    y: lockingArea.start.y * cellSize + height / 2,
+  }
+
   if (lockingArea.end === undefined) {
-    // draw first one
-    const canvasStart = {
-      x: lockingArea.start.x - firstPixelId.x * cellSize,
-      y: lockingArea.start.y - firstPixelId.y * cellSize,
-    }
     context.fillStyle = "#dddd00"
     context.rect(
-      canvasStart.x + cellSize * 0.25,
-      canvasStart.x + cellSize * 0.25,
+      lockingAreaStart.x + cellSize * 0.25,
+      lockingAreaStart.y + cellSize * 0.25,
       cellSize * 0.25,
       cellSize * 0.25
     )
   } else {
     context.strokeStyle = "#dddd00"
-    const canvasStart = {
-      x: lockingArea.start.x - firstPixelId.x * cellSize,
-      y: lockingArea.start.y - firstPixelId.y * cellSize,
-    }
     context.strokeRect(
-      canvasStart.x,
-      canvasStart.x,
+      lockingAreaStart.x,
+      lockingAreaStart.y,
       (lockingArea.end.x - lockingArea.start.x) * cellSize,
       (lockingArea.end.y - lockingArea.start.y) * cellSize
     )
@@ -157,49 +149,53 @@ const renderCanvas = (
   ) => Promise<void>,
   pixelChangesMap: PixelChangesMap,
   dispatch: Dispatch<AnyAction>,
-  lockingArea: LockingArea
+  lockingArea: LockingArea,
+  web3Context: Web3ReactContextInterface<any>
 ) => {
-  const web3Context = useWeb3React()
   const chainId = web3Context.chainId ? web3Context.chainId : 1
   const chunkSize = cellSize * 8
   const chunksToQuery = boundChunks(width, height, chunkSize, offset)
-  const chunkIds = chunksToQuery.chunkIds.map((chunkId) =>
-    pointToString({ x: chunkId.x + 2 ** 12, y: chunkId.y + 2 ** 12 })
+  const chunkIds = chunksToQuery.chunkVectors.map((vector) =>
+    pointToString({ x: vector.x + 2 ** 12, y: vector.y + 2 ** 12 })
   )
+  console.log({chunkMap})
   chunkIds.forEach((chunkId) => {
     const chunk = chunkMap[chunkId]
+    if (chunk?.fetching) return
     if (chunk === undefined) {
-      dispatch(loadAddChunk("loading", chunkId))
+      console.log("init fetch.", {chunk, chunkId})
+      dispatch(
+        slice.actions.addChunk({ ...mockLocalChunk(chunkId), fetching: true })
+      )
       fetchChunk(chunkId, dispatch, chainId)
     } else if (
-      chunk !== "loading" &&
+      !chunk.fetching &&
       chunk.fetchedIn + conf.EXPIRY_TIME < new Date().getTime()
     ) {
+      dispatch(slice.actions.addChunk({ ...chunk, fetching: true }))
       fetchChunk(chunkId, dispatch, chainId)
     }
   })
-  const hackfirst = {
-    x: 0,
-    y: 0,
-  }
-  const firstChunkId = chunksToQuery.chunkIds[0]
-
   const chunks = chunkIds.map((chunkId) => chunkMap[chunkId])
   for (let i = 0; i < chunks.length; i++) {
-    const chunkId = chunksToQuery.chunkIds[i]
     const chunk = chunks[i]
-    const chunkDiff = {
-      x: chunkId.x - firstChunkId.x,
-      y: chunkId.y - firstChunkId.y,
-    }
+    const chunkId = chunksToQuery.chunkVectors[i]
     const chunkCorner = {
-      x: hackfirst.x + chunkDiff.x * chunkSize,
-      y: hackfirst.y + chunkDiff.y * chunkSize,
+      x: chunkId.x * chunkSize + width / 2,
+      y: chunkId.y * chunkSize + height / 2,
     }
     const changes = changesOverlay(chunkId, pixelChangesMap)
-    renderChunk(context, chunkCorner, chunkSize, cellSize, chunk, changes)
+    renderChunk(
+      context,
+      chunkCorner,
+      chunkSize,
+      cellSize,
+      chunk,
+      changes,
+      dispatch
+    )
   }
-  renderLockingArea(context, lockingArea, firstChunkId, cellSize)
+  renderLockingArea(width, height, context, lockingArea, cellSize)
 }
 
 const relativeCellCoords = (mousePoint: Point, cellSize: number): Point => {
@@ -241,17 +237,17 @@ const fetchChunk = async (
   })
 
   const { data } = await response.json()
-  const timestamp = new Date().getTime()
+  const templateChunk = mockLocalChunk(chunkId)
   const chunk: LocalChunk = data.chunk
     ? {
-        color: hexStringToBytes(data.chunk.color),
-        lock: hexStringToBytes(data.chunk.lock),
-        fetchedIn: timestamp,
-        rendered: false
+        ...templateChunk,
+        data: {
+          color: hexStringToBytes(data.chunk.color),
+          lock: hexStringToBytes(data.chunk.lock),
+        },
       }
-    : { ...nullChunk, rendered: false, fetchedIn: timestamp }
-  console.log(chunkId, chunk)
-  dispatch(loadAddChunk(chunk, chunkId))
+    : { ...templateChunk, data: nullChunk }
+  dispatch(slice.actions.addChunk(chunk))
 }
 
 const Canvas: React.FC<{
@@ -267,6 +263,7 @@ const Canvas: React.FC<{
     cellSize,
   } = useSelector<State, State>((state) => state)
   const dispatch = useDispatch()
+  const web3Context = useWeb3React()
 
   const canvasRef = useRef(null)
   const [canvasOffset, setCanvasOffset] = useState<Point>({ x: 0, y: 0 })
@@ -277,6 +274,7 @@ const Canvas: React.FC<{
     const canvas = canvasRef.current as any
     if (canvas) {
       const context = canvas.getContext("2d") as CanvasRenderingContext2D
+      context.translate(canvasOffset.x, canvasOffset.y)
       renderCanvas(
         cellSize,
         width,
@@ -287,7 +285,8 @@ const Canvas: React.FC<{
         fetchChunk,
         pixelChangesMap,
         dispatch,
-        lockingArea
+        lockingArea,
+        web3Context
       )
     }
   }, [canvasOffset, pixelChangesMap])
@@ -305,8 +304,8 @@ const Canvas: React.FC<{
       }
       setAnchorPoint({ x: event.clientX, y: event.clientY })
       const newOffset = {
-        x: canvasOffset.x - anchorDistance.x,
-        y: canvasOffset.y - anchorDistance.y,
+        x: canvasOffset.x + anchorDistance.x,
+        y: canvasOffset.y + anchorDistance.y,
       }
       setCanvasOffset(newOffset)
     }
@@ -316,7 +315,7 @@ const Canvas: React.FC<{
     const chunkSize = cellSize * 8
     const chunksToQuery = boundChunks(width, height, chunkSize, canvasOffset)
     // get absolute pixel coordinates
-    const firstChunk = chunksToQuery.chunkIds[0]
+    const firstChunk = chunksToQuery.chunkVectors[0]
     const firstCellAbsoluteCoords = {
       x: firstChunk.x * 8 + 2 ** 15,
       y: firstChunk.y * 8 + 2 ** 15,
@@ -360,8 +359,6 @@ const Canvas: React.FC<{
 
   const lockModeAnchorMouse = (event: MouseEvent) => {
     const p = getAbsoluteCellPos(event, cellSize)
-    console.log("hello, lock me", p)
-    console.log("lok", lockingArea)
     dispatch(loadSetLockingArea(p))
   }
 

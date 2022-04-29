@@ -103,14 +103,11 @@ const CommitButton: React.FC = () => {
   const dispatch = useDispatch()
   const clickable = Object.values(pixelChangesMap).length !== 0
   const commitChanges = async () => {
-    console.log(web3React)
-    console.log(pixelChangesMap)
     if (!web3React.account) return
     // @ts-ignore
     const signer = new ethers.providers.Web3Provider(window.ethereum).getSigner(
       web3React.account
     )
-    console.log("the culprit?", signer)
     const gtcr = new ethers.Contract(
       "0xb25ba694e53ed11fa7e1aeca8cc640f85af5b436",
       placeAbi,
@@ -119,7 +116,6 @@ const CommitButton: React.FC = () => {
 
     const pixelChanges = pixelChangesMapToArr(pixelChangesMap)
     const calldata = encodePixelChanges(pixelChanges)
-    console.log(calldata)
     await gtcr.changePixels(calldata)
 
     dispatch(loadDeletePixelChanges())

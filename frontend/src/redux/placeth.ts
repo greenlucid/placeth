@@ -24,7 +24,9 @@ const slice = createSlice({
       state.colorId = action.payload
     },
     addChunk(state, action) {
-      state.chunkMap[action.payload.chunkId] = action.payload.chunk
+      if (action.payload) {
+        state.chunkMap[action.payload.chunkId] = action.payload
+      }
     },
     setLockingArea(state, action) {
       const lockingArea = state.lockingArea

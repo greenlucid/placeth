@@ -9,7 +9,7 @@ const conf: Config = {
     1: "https://api.thegraph.com/subgraphs/name/shotaronowhere/placeth",
     42: "https://api.thegraph.com/subgraphs/name/shotaronowhere/placeth",
   },
-  CELL_SIZE: 30,
+  CELL_SIZE: 100,
   EXPIRY_TIME: 15_000,
 }
 

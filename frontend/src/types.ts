@@ -22,9 +22,14 @@ export type Pixel = {
   locked?: boolean
 }
 
-export interface LocalChunk extends Chunk {
+export interface LocalChunk {
+  data: Chunk | undefined
   fetchedIn: number
   rendered: boolean
+  fetching: boolean
+  chunkId: string
+  relativeVector: Point
+  absoluteVector: Point
 }
 
 export type Locking = {
@@ -37,7 +42,7 @@ export type Locking = {
   timestamp: number
 }
 
-export type ChunkMap = { [chunkId: string]: LocalChunk | "loading" | undefined }
+export type ChunkMap = { [chunkId: string]: LocalChunk | undefined }
 
 export type LockingArea = { start: Point | undefined; end: Point | undefined }
 export interface State {
