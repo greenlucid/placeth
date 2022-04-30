@@ -76,19 +76,26 @@ const chunksToClampedArray = (
   columnLength: number
 ): Uint8ClampedArray => {
   const clampedArray: number[] = []
+  console.log("len is ... wtf?", chunks.length)
+  console.log("but row * col is", rowLength * columnLength, {
+    rowLength,
+    columnLength,
+  })
   const reChunks = defaultifyChunks(chunks)
   for (let chunkRow = 0; chunkRow < columnLength; chunkRow++) {
     for (let row = 0; row < 8; row++) {
       for (let iChunk = 0; iChunk < rowLength; iChunk++) {
-        const chunk = reChunks[iChunk]
+        const chunk = reChunks[chunkRow * rowLength + iChunk]
+        if (chunk === undefined) continue
         for (let c = 0; c < 8; c++) {
           const i = row * 8 + c
           const arr = colorIdToUint8s((chunk.data as ChunkData).color[i])
-          arr.forEach(e => clampedArray.push(e))
+          arr.forEach((e) => clampedArray.push(e))
         }
       }
     }
   }
+  console.log("got clamped array", clampedArray)
 
   return Uint8ClampedArray.from(clampedArray)
 }
@@ -98,7 +105,8 @@ export const chunksToImage = (
   rowLength: number,
   columnLength: number
 ): ImageData => {
-  const imageData = new ImageData(8, 8)
+  const imageData = new ImageData(rowLength * 8, columnLength * 8)
+  console.log("rowlen is", rowLength)
   const clampedArray = chunksToClampedArray(chunks, rowLength, columnLength)
   clampedArray.forEach((b, i) => {
     imageData.data[i] = b
@@ -136,8 +144,8 @@ export const boundChunks = (
   }
   const chunkVectors = []
 
-  for (let i = firstChunkVector.x; i <= lastChunkVector.x; i++) {
-    for (let j = firstChunkVector.y; j <= lastChunkVector.y; j++) {
+  for (let j = firstChunkVector.y; j <= lastChunkVector.y; j++) {
+    for (let i = firstChunkVector.x; i <= lastChunkVector.x; i++) {
       chunkVectors.push({ x: i, y: j })
     }
   }

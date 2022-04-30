@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { gatherChunks, FetchChunksParams } from "../libs/fetcher"
 import { pointToString } from "../libs/pixel-changes"
-import { boundChunks, chunkToImage } from "../libs/render"
+import { boundChunks, chunksToImage, chunkToImage } from "../libs/render"
 import slice from "../redux/placeth"
 import {
   ChunkMap,
@@ -45,26 +45,20 @@ const renderCanvas = (
   const height = canvas.height
   context.clearRect(0, 0, width, height)
   const chainId = web3Context.chainId ? web3Context.chainId : 1
-  const chunkSize = 8
-  const chunksToQuery = boundChunks(width, height, 1.5, offset)
+  const chunksToQuery = boundChunks(width, height, cellSize, offset)
   console.log("lets see whats up", chunksToQuery)
   const chunkIds = chunksToQuery.chunkVectors.map((vector) =>
     pointToString({ x: vector.x + 2 ** 12, y: vector.y + 2 ** 12 })
   )
   gatherChunks({ chunkIds, chainId, dispatch, chunkMap })
   const chunks = chunkIds.map((chunkId) => chunkMap[chunkId])
-  const firstChunkVector = chunksToQuery.chunkVectors[0]
-  for (let i = 0; i < chunks.length; i++) {
-    const chunk = chunks[i]
-    if (chunk === undefined) continue
-    const chunkVector = chunksToQuery.chunkVectors[i]
-    const chunkCorner = {
-      x: (chunkVector.x - firstChunkVector.x) * chunkSize,
-      y: (chunkVector.y - firstChunkVector.y) * chunkSize,
-    }
-    console.log("rendering", chunkCorner)
-    renderChunk(context, chunkCorner, chunk, dispatch)
-  }
+  const [chunkRows, chunksColumns] = [
+    Math.floor(chunksToQuery.rowLength / 8),
+    Math.floor(chunksToQuery.columnLength / 8),
+  ]
+  const imageData = chunksToImage(chunks, chunkRows, chunksColumns)
+  context.putImageData(imageData, 0, 0)
+
   //renderLockingArea(width, height, context, lockingArea, cellSize)
 }
 
@@ -75,7 +69,10 @@ const relativeCellCoords = (mousePoint: Point, zoom: number): Point => {
   }
 }
 
-const Canvas: React.FC = () => {
+const Canvas: React.FC<{ width: number; height: number }> = ({
+  width,
+  height,
+}) => {
   const { pixelChangesMap, colorId, cursorMode, chunkMap, lockingArea, zoom } =
     useSelector<State, State>((state) => state)
   const dispatch = useDispatch()
@@ -89,9 +86,7 @@ const Canvas: React.FC = () => {
   useEffect(() => {
     const canvas = canvasRef.current as any
     if (canvas) {
-      const context = canvas.getContext("2d", {
-        alpha: false,
-      }) as CanvasRenderingContext2D
+      const context = canvas.getContext("2d") as CanvasRenderingContext2D
       renderCanvas(
         zoom,
         context,
@@ -209,12 +204,14 @@ const Canvas: React.FC = () => {
   return (
     <div
       className="canvasContainer"
-      style={{ transform: `scale(${2}) translate(${200}px, ${200}px)` }}
+      style={{ transform: `scale(${zoom}) translate(${500}px, ${500}px)` }}
     >
       <canvas
         id="canvas"
         style={{ border: "2px", borderStyle: "double", borderColor: "blue" }}
         ref={canvasRef}
+        width={width}
+        height={height}
         onMouseDown={anchorMouse as any}
         onMouseMove={(e) => {
           moveMouse(e)
