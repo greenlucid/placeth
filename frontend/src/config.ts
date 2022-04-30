@@ -1,6 +1,6 @@
 interface Config {
   SUBGRAPH_URL_MAP: { [chainId: number]: string }
-  CELL_SIZE: number
+  ZOOM: number
   EXPIRY_TIME: number
 }
 
@@ -9,7 +9,7 @@ const conf: Config = {
     1: "https://api.thegraph.com/subgraphs/name/shotaronowhere/placeth",
     42: "https://api.thegraph.com/subgraphs/name/shotaronowhere/placeth",
   },
-  CELL_SIZE: 100,
+  ZOOM: 2,
   EXPIRY_TIME: 15_000,
 }
 

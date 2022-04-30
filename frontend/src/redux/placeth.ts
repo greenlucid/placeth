@@ -1,7 +1,7 @@
-import { Action, ActionCreatorWithPayload, createSlice } from "@reduxjs/toolkit"
+import { createSlice } from "@reduxjs/toolkit"
 import conf from "../config"
 import { pointToString } from "../libs/pixel-changes"
-import { LocalChunk, State } from "../types"
+import { State } from "../types"
 
 const initialState: State = {
   chunkMap: {},
@@ -9,7 +9,7 @@ const initialState: State = {
   cursorMode: "drag",
   lockingArea: { start: undefined, end: undefined },
   pixelChangesMap: {},
-  cellSize: conf.CELL_SIZE,
+  zoom: conf.ZOOM,
   pointedPixel: { x: 32768, y: 32768 },
 }
 
@@ -25,7 +25,7 @@ const slice = createSlice({
     },
     addChunk(state, action) {
       if (action.payload) {
-        state.chunkMap[action.payload.chunkId] = action.payload
+        state.chunkMap[action.payload.id] = action.payload
       }
     },
     setLockingArea(state, action) {
@@ -49,8 +49,8 @@ const slice = createSlice({
     deletePixelChanges(state) {
       state.pixelChangesMap = {}
     },
-    changeCellSize(state, action) {
-      state.cellSize = action.payload
+    changeZoom(state, action) {
+      state.zoom = action.payload
     },
     changePointedPixel(state, action) {
       state.pointedPixel = action.payload

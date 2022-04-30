@@ -1,5 +1,5 @@
 import { Bytes } from "ethers"
-import { Chunk, LocalChunk, Pixel, PixelChangesMap, Point } from "../types"
+import { ChunkData, LocalChunk, Pixel, PixelChangesMap, Point } from "../types"
 import { palette } from "./colors"
 import { pointToString, stringToPoint } from "./pixel-changes"
 
@@ -23,13 +23,13 @@ export const mockLocalChunk = (chunkId: string): LocalChunk => {
     fetchedIn: new Date().getTime(),
     rendered: false,
     fetching: false,
-    chunkId,
+    id: chunkId,
     absoluteVector,
     relativeVector,
   }
 }
 
-const chunkToColors = (chunk: Chunk): Pixel[] => {
+const chunkToColors = (chunk: ChunkData): Pixel[] => {
   const pixels: Pixel[] = []
   for (let i = 0; i < chunk.color.length; i++) {
     const color = palette[chunk.color[i]]

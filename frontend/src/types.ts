@@ -12,7 +12,13 @@ export type PixelChange = {
 
 export type PixelChangesMap = { [p: string]: number | undefined }
 
-export interface Chunk {
+export interface FetchedChunk {
+  id: string
+  color: string
+  lock: string
+}
+
+export interface ChunkData {
   color: Bytes
   lock: Bytes
 }
@@ -23,11 +29,11 @@ export type Pixel = {
 }
 
 export interface LocalChunk {
-  data: Chunk | undefined
+  data: ChunkData | undefined
   fetchedIn: number
   rendered: boolean
   fetching: boolean
-  chunkId: string
+  id: string
   relativeVector: Point
   absoluteVector: Point
 }
@@ -51,6 +57,6 @@ export interface State {
   pixelChangesMap: PixelChangesMap
   chunkMap: ChunkMap
   lockingArea: LockingArea
-  cellSize: number
+  zoom: number
   pointedPixel: Point
 }

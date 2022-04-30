@@ -5,7 +5,7 @@ const Placeth: React.FC = () => {
   return (
     <div>
       <Panel />
-      <Canvas height={window.innerHeight} width={window.innerWidth} />
+      <Canvas />
     </div>
   )
 }

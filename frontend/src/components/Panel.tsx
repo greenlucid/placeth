@@ -5,24 +5,17 @@ import { hexToColorId, palette } from "../libs/colors"
 import encodePixelChanges, { pixelChangesMapToArr } from "../libs/pixel-changes"
 
 import placeAbi from "../abis/place.json"
-
-import {
-  loadChangeColorId,
-  loadChangeCursorMode,
-  loadDeletePixelChanges,
-} from "../redux/actions"
 import slice from "../redux/placeth"
 import { PixelChangesMap, Point, State } from "../types"
 import { useWeb3React } from "@web3-react/core"
 
 const DragButton: React.FC = () => {
-  const actions = slice.actions
   const dispatch = useDispatch()
   return (
     <button
       onClick={() => {
-        dispatch(loadChangeColorId(undefined))
-        dispatch(loadChangeCursorMode("drag"))
+        dispatch(slice.actions.changeColorId(undefined))
+        dispatch(slice.actions.changeCursorMode("drag"))
       }}
     >
       Drag Mode
@@ -35,8 +28,8 @@ const EraseButton: React.FC = () => {
   return (
     <button
       onClick={() => {
-        dispatch(loadChangeColorId(undefined))
-        dispatch(loadChangeCursorMode("erase"))
+        dispatch(slice.actions.changeColorId(undefined))
+        dispatch(slice.actions.changeCursorMode("erase"))
       }}
     >
       Erase Mode
@@ -49,8 +42,8 @@ const LockModeButton: React.FC = () => {
   return (
     <button
       onClick={() => {
-        dispatch(loadChangeColorId(undefined))
-        dispatch(loadChangeCursorMode("lock"))
+        dispatch(slice.actions.changeColorId(undefined))
+        dispatch(slice.actions.changeCursorMode("lock"))
       }}
     >
       Lock Mode
@@ -60,24 +53,24 @@ const LockModeButton: React.FC = () => {
 
 const ZoomButtons: React.FC = () => {
   const dispatch = useDispatch()
-  const cellSize = useSelector<State, number>((state) => state.cellSize)
+  const zoom = useSelector<State, number>((state) => state.zoom)
   return (
     <>
       <button
         onClick={() => {
-          dispatch(slice.actions.changeCellSize(cellSize - 1))
+          dispatch(slice.actions.changeZoom(zoom - 1))
         }}
       >
         - Zoom
       </button>
       <button
         onClick={() => {
-          dispatch(slice.actions.changeCellSize(cellSize + 1))
+          dispatch(slice.actions.changeZoom(zoom + 1))
         }}
       >
         + Zoom
       </button>
-      Current zoom: {cellSize}
+      Current zoom: {zoom}
     </>
   )
 }
@@ -87,7 +80,7 @@ const DeleteChangesButton: React.FC = () => {
   return (
     <button
       onClick={() => {
-        dispatch(loadDeletePixelChanges())
+        dispatch(slice.actions.deletePixelChanges())
       }}
     >
       Delete All Changes
@@ -118,7 +111,7 @@ const CommitButton: React.FC = () => {
     const calldata = encodePixelChanges(pixelChanges)
     await gtcr.changePixels(calldata)
 
-    dispatch(loadDeletePixelChanges())
+    dispatch(slice.actions.deletePixelChanges())
   }
   return (
     <button disabled={!clickable} onClick={commitChanges}>
@@ -155,8 +148,8 @@ const Panel: React.FC = () => {
 
   const handleChange = (color: ColorResult) => {
     const newColorId = hexToColorId[color.hex]
-    dispatch(loadChangeColorId(newColorId))
-    dispatch(loadChangeCursorMode("paint"))
+    dispatch(slice.actions.changeColorId(newColorId))
+    dispatch(slice.actions.changeCursorMode("paint"))
   }
 
   return (

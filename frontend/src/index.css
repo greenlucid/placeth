@@ -22,3 +22,12 @@ code {
   background-blend-mode: darken;
   background-color: blanchedalmond;
 }
+
+.canvasContainer {
+  position: absolute;
+  left: 15%;
+  top: 15%;
+  border: 1px;
+  border-color: black;
+  border-style: dashed;
+}

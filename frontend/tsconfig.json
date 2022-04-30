@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "paths": { "crypto": ["node_modules/crypto-js"] },
+    "paths": { "crypto": ["./node_modules/crypto-js"] },
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
+    "downlevelIteration": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
