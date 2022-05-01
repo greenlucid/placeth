@@ -24,10 +24,5 @@ code {
 }
 
 .canvasContainer {
-  position: absolute;
-  left: 15%;
-  top: 15%;
-  border: 1px;
-  border-color: black;
-  border-style: dashed;
+  margin: 10px;
 }

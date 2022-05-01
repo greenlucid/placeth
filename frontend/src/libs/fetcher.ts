@@ -20,7 +20,11 @@ const setChunksAsFetching = (
   for (const id of chunkIds) {
     const chunk = chunkMap[id]
     if (chunk !== undefined) {
-      const fetchingChunk: LocalChunk = { ...chunk, fetching: true }
+      const fetchingChunk: LocalChunk = {
+        ...chunk,
+        fetching: true,
+        rendered: false,
+      }
       dispatch(slice.actions.addChunk(fetchingChunk))
     } else {
       const mockedChunk: LocalChunk = mockLocalChunk(id)
@@ -66,7 +70,7 @@ const fetchChunks = async ({
     if (fetchedChunk === undefined) {
       const chunk: LocalChunk = {
         ...mockLocalChunk(chunkId),
-        data: { ...nullChunk },
+        data: nullChunk,
       }
       dispatch(slice.actions.addChunk(chunk))
     } else {
@@ -98,7 +102,7 @@ export const gatherChunks = async ({
     return false
   }
   const fetchableIds = chunkIds.filter((id) => shouldBeFetched(chunkMap[id]))
-  // only bother the graph if query is big enough. hardcoded as 16 for now.
-  if (fetchableIds.length > 1)
-    await fetchChunks({ chunkIds: fetchableIds, dispatch, chainId, chunkMap })
+  // only bother the graph if query is big enough. hardcoded as 1 for now.
+  if (fetchableIds.length > 5)
+    fetchChunks({ chunkIds: fetchableIds, dispatch, chainId, chunkMap })
 }

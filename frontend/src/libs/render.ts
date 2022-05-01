@@ -1,3 +1,4 @@
+import conf from "../config"
 import { ChunkData, LocalChunk, LockingArea, Point } from "../types"
 import { palette } from "./colors"
 import { mockLocalChunk } from "./decode-chunk"
@@ -30,10 +31,12 @@ export const loadingChunk: ChunkData = {
   lock: [0, 0, 0, 0, 0, 0, 0, 0],
 }
 
+// unused
 const colorIdToUint8s = (colorId: number): number[] => {
   return colorStringToUint8s(palette[colorId])
 }
 
+// unused
 const chunkToClampedArray = (chunk: LocalChunk): Uint8ClampedArray => {
   const clampedArray: number[] = []
   const chunkData = chunk.data ? chunk.data : nullChunk
@@ -44,6 +47,7 @@ const chunkToClampedArray = (chunk: LocalChunk): Uint8ClampedArray => {
   return Uint8ClampedArray.from(clampedArray)
 }
 
+// unused
 export const chunkToImage = (chunk: LocalChunk): ImageData => {
   const imageData = new ImageData(8, 8)
   const clampedArray = chunkToClampedArray(chunk)
@@ -53,6 +57,7 @@ export const chunkToImage = (chunk: LocalChunk): ImageData => {
   return imageData
 }
 
+// unused
 const defaultifyChunks = (
   chunks: Array<LocalChunk | undefined>
 ): LocalChunk[] => {
@@ -70,17 +75,13 @@ const defaultifyChunks = (
 }
 
 // rather not justify myself
+// unused
 const chunksToClampedArray = (
   chunks: Array<LocalChunk | undefined>,
   rowLength: number,
   columnLength: number
 ): Uint8ClampedArray => {
   const clampedArray: number[] = []
-  console.log("len is ... wtf?", chunks.length)
-  console.log("but row * col is", rowLength * columnLength, {
-    rowLength,
-    columnLength,
-  })
   const reChunks = defaultifyChunks(chunks)
   for (let chunkRow = 0; chunkRow < columnLength; chunkRow++) {
     for (let row = 0; row < 8; row++) {
@@ -95,18 +96,17 @@ const chunksToClampedArray = (
       }
     }
   }
-  console.log("got clamped array", clampedArray)
 
   return Uint8ClampedArray.from(clampedArray)
 }
 
+// unused
 export const chunksToImage = (
   chunks: Array<LocalChunk | undefined>,
   rowLength: number,
   columnLength: number
 ): ImageData => {
   const imageData = new ImageData(rowLength * 8, columnLength * 8)
-  console.log("rowlen is", rowLength)
   const clampedArray = chunksToClampedArray(chunks, rowLength, columnLength)
   clampedArray.forEach((b, i) => {
     imageData.data[i] = b
@@ -117,7 +117,7 @@ export const chunksToImage = (
 /**
  *
  * @param zoom size of a cell
- * @param offset absolute cell in the top left corner
+ * @param offset relative chunk in the top left corner
  * @returns chunkVectors gives an array with all point identifiers of vectors
  * bounded by the screen
  *
@@ -131,16 +131,11 @@ export const boundChunks = (
   zoom: number,
   offset: Point
 ): { chunkVectors: Point[]; rowLength: number; columnLength: number } => {
-  console.log("AAAAAAAAAAAAAAA")
-  const rowLength = Math.ceil(width / zoom)
-  const columnLength = Math.ceil(height / zoom)
-  const firstChunkVector = {
-    x: Math.floor(offset.x / (zoom * 8)),
-    y: Math.floor(offset.y / (zoom * 8)),
-  }
+  const chunkSize = zoom * conf.CHUNK_SIDE
+  const firstChunkVector = offset
   const lastChunkVector = {
-    x: Math.ceil((offset.x + rowLength) / (zoom * 8)),
-    y: Math.ceil((offset.y + columnLength) / (zoom * 8)),
+    x: Math.ceil(offset.x + (width / chunkSize)),
+    y: Math.ceil(offset.y + (height / chunkSize)),
   }
   const chunkVectors = []
 
@@ -149,7 +144,9 @@ export const boundChunks = (
       chunkVectors.push({ x: i, y: j })
     }
   }
-  console.log(chunkVectors)
+  const rowLength = lastChunkVector.x + 1 - firstChunkVector.x
+  const columnLength = lastChunkVector.y + 1 - firstChunkVector.y
+
   return { chunkVectors, rowLength, columnLength }
 }
 

@@ -1,11 +1,11 @@
 import Canvas from "../components/Canvas"
 import Panel from "../components/Panel"
 
-const Placeth: React.FC<{width: number, height: number}> = ({width, height}) => {
+const Placeth: React.FC = () => {
   return (
     <div>
       <Panel />
-      <Canvas width={width} height={height}/>
+      <Canvas height={window.innerHeight} width={window.innerWidth} />
     </div>
   )
 }
