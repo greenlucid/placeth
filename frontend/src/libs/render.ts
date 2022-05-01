@@ -1,14 +1,10 @@
+import { AnyAction, Dispatch } from "@reduxjs/toolkit"
+import { Web3ReactContextInterface } from "@web3-react/core/dist/types"
 import conf from "../config"
-import { ChunkData, LocalChunk, LockingArea, Point } from "../types"
-import { palette } from "./colors"
-import { mockLocalChunk } from "./decode-chunk"
-
-const colorStringToUint8s = (color: string): number[] => {
-  const r = Number.parseInt(color.substring(1, 3), 16)
-  const g = Number.parseInt(color.substring(3, 5), 16)
-  const b = Number.parseInt(color.substring(5, 7), 16)
-  return [r, g, b, 255]
-}
+import { ChunkData, ChunkMap, LocalChunk, LockingArea, Point } from "../types"
+import chunkToColors from "./decode-chunk"
+import { FetchChunksParams } from "./fetcher"
+import { pointToString } from "./pixel-changes"
 
 export const nullChunk: ChunkData = {
   color: [
@@ -31,89 +27,6 @@ export const loadingChunk: ChunkData = {
   lock: [0, 0, 0, 0, 0, 0, 0, 0],
 }
 
-// unused
-const colorIdToUint8s = (colorId: number): number[] => {
-  return colorStringToUint8s(palette[colorId])
-}
-
-// unused
-const chunkToClampedArray = (chunk: LocalChunk): Uint8ClampedArray => {
-  const clampedArray: number[] = []
-  const chunkData = chunk.data ? chunk.data : nullChunk
-  for (const color of chunkData.color as number[]) {
-    const uint8s = colorIdToUint8s(color)
-    uint8s.forEach((uint) => clampedArray.push(uint))
-  }
-  return Uint8ClampedArray.from(clampedArray)
-}
-
-// unused
-export const chunkToImage = (chunk: LocalChunk): ImageData => {
-  const imageData = new ImageData(8, 8)
-  const clampedArray = chunkToClampedArray(chunk)
-  clampedArray.forEach((b, i) => {
-    imageData.data[i] = b
-  })
-  return imageData
-}
-
-// unused
-const defaultifyChunks = (
-  chunks: Array<LocalChunk | undefined>
-): LocalChunk[] => {
-  const newChunks: LocalChunk[] = []
-  for (const chunk of chunks) {
-    if (chunk === undefined || chunk.data === undefined) {
-      // loading chunk
-      newChunks.push({ ...mockLocalChunk("loading"), data: loadingChunk })
-    } else {
-      newChunks.push(chunk)
-    }
-  }
-
-  return newChunks
-}
-
-// rather not justify myself
-// unused
-const chunksToClampedArray = (
-  chunks: Array<LocalChunk | undefined>,
-  rowLength: number,
-  columnLength: number
-): Uint8ClampedArray => {
-  const clampedArray: number[] = []
-  const reChunks = defaultifyChunks(chunks)
-  for (let chunkRow = 0; chunkRow < columnLength; chunkRow++) {
-    for (let row = 0; row < 8; row++) {
-      for (let iChunk = 0; iChunk < rowLength; iChunk++) {
-        const chunk = reChunks[chunkRow * rowLength + iChunk]
-        if (chunk === undefined) continue
-        for (let c = 0; c < 8; c++) {
-          const i = row * 8 + c
-          const arr = colorIdToUint8s((chunk.data as ChunkData).color[i])
-          arr.forEach((e) => clampedArray.push(e))
-        }
-      }
-    }
-  }
-
-  return Uint8ClampedArray.from(clampedArray)
-}
-
-// unused
-export const chunksToImage = (
-  chunks: Array<LocalChunk | undefined>,
-  rowLength: number,
-  columnLength: number
-): ImageData => {
-  const imageData = new ImageData(rowLength * 8, columnLength * 8)
-  const clampedArray = chunksToClampedArray(chunks, rowLength, columnLength)
-  clampedArray.forEach((b, i) => {
-    imageData.data[i] = b
-  })
-  return imageData
-}
-
 /**
  *
  * @param zoom size of a cell
@@ -134,8 +47,8 @@ export const boundChunks = (
   const chunkSize = zoom * conf.CHUNK_SIDE
   const firstChunkVector = offset
   const lastChunkVector = {
-    x: Math.ceil(offset.x + (width / chunkSize)),
-    y: Math.ceil(offset.y + (height / chunkSize)),
+    x: Math.ceil(offset.x + width / chunkSize),
+    y: Math.ceil(offset.y + height / chunkSize),
   }
   const chunkVectors = []
 
@@ -180,5 +93,80 @@ const renderLockingArea = (
       (lockingArea.end.x - lockingArea.start.x) * cellSize,
       (lockingArea.end.y - lockingArea.start.y) * cellSize
     )
+  }
+}
+
+const renderLoadingChunk = (
+  context: CanvasRenderingContext2D,
+  corner: Point,
+  zoom: number
+): void => {
+  context.fillStyle = "#aaaaaa"
+  context.fillRect(
+    corner.x,
+    corner.y,
+    zoom * conf.CHUNK_SIDE,
+    zoom * conf.CHUNK_SIDE
+  )
+}
+
+const renderChunk = (
+  context: CanvasRenderingContext2D,
+  corner: Point,
+  chunk: LocalChunk | undefined,
+  zoom: number
+): void => {
+  if (chunk === undefined || chunk.data === undefined) {
+    renderLoadingChunk(context, corner, zoom)
+  } else {
+    const pixels = chunkToColors(chunk.data)
+    for (let i = 0; i < 8; i++) {
+      for (let j = 0; j < 8; j++) {
+        const pixel = pixels[j * 8 + i] // XD
+        context.fillStyle = pixel.color
+        const pixelCorner = {
+          x: corner.x + i * zoom,
+          y: corner.y + j * zoom,
+        }
+        context.fillRect(pixelCorner.x, pixelCorner.y, zoom, zoom)
+      }
+    }
+  }
+}
+
+export const renderCanvas = (
+  cellSize: number,
+  context: CanvasRenderingContext2D,
+  offset: Point,
+  chunkMap: ChunkMap,
+  gatherChunks: (params: FetchChunksParams) => Promise<void>,
+  dispatch: Dispatch<AnyAction>,
+  web3Context: Web3ReactContextInterface<any>
+) => {
+  const canvas = document.getElementById("canvas") as any
+  const chunkSize = cellSize * 8
+  const width = canvas.width
+  const height = canvas.height
+  context.clearRect(0, 0, width, height)
+  const chainId = web3Context.chainId ? web3Context.chainId : 1
+  const chunksToQuery = boundChunks(width, height, cellSize, offset)
+  const chunkIds = chunksToQuery.chunkVectors.map((vector) =>
+    pointToString({ x: vector.x + 2 ** 12, y: vector.y + 2 ** 12 })
+  )
+  gatherChunks({ chunkIds, chainId, dispatch, chunkMap })
+  const firstChunkVector = chunksToQuery.chunkVectors[0]
+  for (let i = 0; i < chunkIds.length; i++) {
+    const chunkId = chunkIds[i]
+    const chunk = chunkMap[chunkId]
+    const chunkVector = chunksToQuery.chunkVectors[i]
+    const chunkDiff = {
+      x: chunkVector.x - firstChunkVector.x,
+      y: chunkVector.y - firstChunkVector.y,
+    }
+    const chunkCorner = {
+      x: chunkDiff.x * chunkSize,
+      y: chunkDiff.y * chunkSize,
+    }
+    renderChunk(context, chunkCorner, chunk, cellSize)
   }
 }

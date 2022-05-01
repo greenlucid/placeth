@@ -1,90 +1,11 @@
-import { AnyAction, Dispatch } from "@reduxjs/toolkit"
 import { useWeb3React } from "@web3-react/core"
-import { Web3ReactContextInterface } from "@web3-react/core/dist/types"
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import conf from "../config"
-import chunkToColors from "../libs/decode-chunk"
-import { gatherChunks, FetchChunksParams } from "../libs/fetcher"
-import { pointToString } from "../libs/pixel-changes"
-import { boundChunks } from "../libs/render"
+import { gatherChunks } from "../libs/fetcher"
+import { renderCanvas } from "../libs/render"
 import slice from "../redux/placeth"
-import { ChunkMap, LocalChunk, Point, State } from "../types"
-
-const renderLoadingChunk = (
-  context: CanvasRenderingContext2D,
-  corner: Point,
-  zoom: number
-): void => {
-  context.fillStyle = "#aaaaaa"
-  context.fillRect(
-    corner.x,
-    corner.y,
-    zoom * conf.CHUNK_SIDE,
-    zoom * conf.CHUNK_SIDE
-  )
-}
-
-const renderChunk = (
-  context: CanvasRenderingContext2D,
-  corner: Point,
-  chunk: LocalChunk | undefined,
-  zoom: number
-): void => {
-  if (chunk === undefined || chunk.data === undefined) {
-    renderLoadingChunk(context, corner, zoom)
-  } else {
-    const pixels = chunkToColors(chunk.data)
-    for (let i = 0; i < 8; i++) {
-      for (let j = 0; j < 8; j++) {
-        const pixel = pixels[j * 8 + i] // XD
-        context.fillStyle = pixel.color
-        const pixelCorner = {
-          x: corner.x + i * zoom,
-          y: corner.y + j * zoom,
-        }
-        context.fillRect(pixelCorner.x, pixelCorner.y, zoom, zoom)
-      }
-    }
-  }
-}
-
-const renderCanvas = (
-  cellSize: number,
-  context: CanvasRenderingContext2D,
-  offset: Point,
-  chunkMap: ChunkMap,
-  gatherChunks: (params: FetchChunksParams) => Promise<void>,
-  dispatch: Dispatch<AnyAction>,
-  web3Context: Web3ReactContextInterface<any>
-) => {
-  const canvas = document.getElementById("canvas") as any
-  const chunkSize = cellSize * 8
-  const width = canvas.width
-  const height = canvas.height
-  context.clearRect(0, 0, width, height)
-  const chainId = web3Context.chainId ? web3Context.chainId : 1
-  const chunksToQuery = boundChunks(width, height, cellSize, offset)
-  const chunkIds = chunksToQuery.chunkVectors.map((vector) =>
-    pointToString({ x: vector.x + 2 ** 12, y: vector.y + 2 ** 12 })
-  )
-  gatherChunks({ chunkIds, chainId, dispatch, chunkMap })
-  const firstChunkVector = chunksToQuery.chunkVectors[0]
-  for (let i = 0; i < chunkIds.length; i++) {
-    const chunkId = chunkIds[i]
-    const chunk = chunkMap[chunkId]
-    const chunkVector = chunksToQuery.chunkVectors[i]
-    const chunkDiff = {
-      x: chunkVector.x - firstChunkVector.x,
-      y: chunkVector.y - firstChunkVector.y,
-    }
-    const chunkCorner = {
-      x: chunkDiff.x * chunkSize,
-      y: chunkDiff.y * chunkSize,
-    }
-    renderChunk(context, chunkCorner, chunk, cellSize)
-  }
-}
+import { Point, State } from "../types"
 
 const relativeCellCoords = (mousePoint: Point, zoom: number): Point => {
   return {
@@ -134,8 +55,6 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
     const canvas = canvasRef.current as any
     if (canvas) {
       const context = canvas.getContext("2d") as CanvasRenderingContext2D
-      // this move isnt well adjusted, disregard
-      // context.moveTo(chunkOffset.x * chunkSize, chunkOffset.y * chunkSize)
       renderCanvas(
         zoom,
         context,
@@ -147,17 +66,6 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
       )
     }
   }, [chunkCorner, canvasRef.current])
-
-  /**
-   *
-   * new drag logic
-   * offsets are always pixel based now
-   * the "pixelCorner" refers to the pixel that appears top left corner
-   * when you click, you store this pixel coordinates
-   * drag event checks if pixel youre currently pointing is different
-   * if it is, if will change the pixelCorner, update the anchor, and rerender
-   *
-   */
 
   const dragModeAnchorMouse = (event: MouseEvent) => {
     const absoluteCell = getAbsoluteCellPos(event, zoom)
