@@ -51,7 +51,6 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
   }, [chunkCorner, cellChunkOffset])
 
   useEffect(() => {
-    console.log(" chunk corner", chunkCorner)
     const canvas = canvasRef.current as any
     if (canvas) {
       const context = canvas.getContext("2d") as CanvasRenderingContext2D
@@ -65,7 +64,7 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
         web3Context
       )
     }
-  }, [chunkCorner, canvasRef.current])
+  }, [chunkCorner, canvasRef.current, zoom])
 
   const dragModeAnchorMouse = (event: MouseEvent) => {
     const absoluteCell = getAbsoluteCellPos(event, zoom)
