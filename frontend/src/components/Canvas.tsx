@@ -31,30 +31,6 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
   const [anchorPoint, setAnchorPoint] = useState<Point>({ x: 0, y: 0 })
   const [mouseDown, setMouseDown] = useState<boolean>(false)
 
-  /**
-   * issue with the chunk coordinates (stuttering)
-   * my interpretation was that there's a race condition
-   * between the event handler of the canvas and the useEffect
-   * a way to go around this "cheaply" is, to just handle all
-   * coordinate related code inside the event handler. no useEffects
-   * to react to the cellChunkOffset
-   * ...
-   * but this turned out to be wrong.
-   * i wonder how the logic works out, whats going on, and what was i expecting?
-   * okay, i think i figured it out...
-   * the map updates and moves around. but, that makes the mouse consider itself to
-   * change its relative position suddenly +-8
-   * this may happen because the way the render updates and the event handler updates
-   * is unclear. i mean, im talking about the order.
-   * 
-   * there's another insidious interpretation
-   * the moment the canvas rerenders with the shifted chunk, the mouse finds itself
-   * on an entirely different chunk than before
-   * (this is actually a likely explanation)
-   * maybe thats why this started happening when making absoluteCellPos work from chunks
-   * a workaround is, get cellCorner back but only use it for this.  
-   */
-
   useEffect(() => {
     const canvas = canvasRef.current as any
     if (canvas) {
