@@ -31,24 +31,29 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
   const [anchorPoint, setAnchorPoint] = useState<Point>({ x: 0, y: 0 })
   const [mouseDown, setMouseDown] = useState<boolean>(false)
 
-  useEffect(() => {
-    const chunkOffset = {
-      x: Math.floor(cellChunkOffset.x / conf.CHUNK_SIDE),
-      y: Math.floor(cellChunkOffset.y / conf.CHUNK_SIDE),
-    }
-
-    if (chunkOffset.x !== 0 || chunkOffset.y !== 0) {
-      const nextCellChunkOffset = {
-        x: (cellChunkOffset.x + 800) % conf.CHUNK_SIDE,
-        y: (cellChunkOffset.y + 800) % conf.CHUNK_SIDE,
-      }
-      setChunkCorner({
-        x: chunkCorner.x + chunkOffset.x,
-        y: chunkCorner.y + chunkOffset.y,
-      })
-      setCellChunkOffset(nextCellChunkOffset)
-    }
-  }, [chunkCorner, cellChunkOffset])
+  /**
+   * issue with the chunk coordinates (stuttering)
+   * my interpretation was that there's a race condition
+   * between the event handler of the canvas and the useEffect
+   * a way to go around this "cheaply" is, to just handle all
+   * coordinate related code inside the event handler. no useEffects
+   * to react to the cellChunkOffset
+   * ...
+   * but this turned out to be wrong.
+   * i wonder how the logic works out, whats going on, and what was i expecting?
+   * okay, i think i figured it out...
+   * the map updates and moves around. but, that makes the mouse consider itself to
+   * change its relative position suddenly +-8
+   * this may happen because the way the render updates and the event handler updates
+   * is unclear. i mean, im talking about the order.
+   * 
+   * there's another insidious interpretation
+   * the moment the canvas rerenders with the shifted chunk, the mouse finds itself
+   * on an entirely different chunk than before
+   * (this is actually a likely explanation)
+   * maybe thats why this started happening when making absoluteCellPos work from chunks
+   * a workaround is, get cellCorner back but only use it for this.  
+   */
 
   useEffect(() => {
     const canvas = canvasRef.current as any
@@ -67,14 +72,14 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
   }, [chunkCorner, canvasRef.current, zoom])
 
   const dragModeAnchorMouse = (event: MouseEvent) => {
-    const absoluteCell = getAbsoluteCellPos(event, zoom)
+    const absoluteCell = getWrongAbsoluteCellPos(event, zoom)
     setAnchorPoint(absoluteCell)
     setMouseDown(true)
   }
 
   const dragModeMoveMouse = (event: MouseEvent) => {
     if (mouseDown) {
-      const currentCell = getAbsoluteCellPos(event, zoom)
+      const currentCell = getWrongAbsoluteCellPos(event, zoom)
       // minus, to get the dragging effect
       const anchorDistance = {
         x: -(currentCell.x - anchorPoint.x),
@@ -91,13 +96,33 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
         x: cellChunkOffset.x + anchorDistance.x,
         y: cellChunkOffset.y + anchorDistance.y,
       }
-      setCellChunkOffset(newCellChunkOffset)
 
+      const chunkOffset = {
+        x: Math.floor(newCellChunkOffset.x / conf.CHUNK_SIDE),
+        y: Math.floor(newCellChunkOffset.y / conf.CHUNK_SIDE),
+      }
+  
+      if (chunkOffset.x !== 0 || chunkOffset.y !== 0) {
+        const nextCellChunkOffset = {
+          x: (newCellChunkOffset.x + 800) % conf.CHUNK_SIDE,
+          y: (newCellChunkOffset.y + 800) % conf.CHUNK_SIDE,
+        }
+        setChunkCorner({
+          x: chunkCorner.x + chunkOffset.x,
+          y: chunkCorner.y + chunkOffset.y,
+        })
+        setCellChunkOffset(nextCellChunkOffset)
+      } else {
+        setCellChunkOffset(newCellChunkOffset)
+      }
       setCellCorner(newOffset)
     }
   }
 
-  const getAbsoluteCellPos = (event: MouseEvent, zoom: number): Point => {
+  // this exists to avoid a shaking screen bug
+  // you just use the "wrong one" that works for dragging functionality
+  // and use the proper one for everything else.
+  const getWrongAbsoluteCellPos = (event: MouseEvent, zoom: number): Point => {
     const firstChunkVector = {
       x: Math.floor(cellCorner.x / (zoom * 8)),
       y: Math.floor(cellCorner.y / (zoom * 8)),
@@ -106,6 +131,20 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
     const firstCellAbsoluteCoords = {
       x: firstChunkVector.x * 8 + 2 ** 15,
       y: firstChunkVector.y * 8 + 2 ** 15,
+    }
+    const rel = relativeCellCoords({ x: event.clientX, y: event.clientY }, zoom)
+    const p: Point = {
+      x: firstCellAbsoluteCoords.x + rel.x,
+      y: firstCellAbsoluteCoords.y + rel.y,
+    }
+    return p
+  }
+
+  const getAbsoluteCellPos = (event: MouseEvent, zoom: number): Point => {
+    // get absolute pixel coordinates
+    const firstCellAbsoluteCoords = {
+      x: chunkCorner.x * 8 + 2 ** 15,
+      y: chunkCorner.y * 8 + 2 ** 15,
     }
     const rel = relativeCellCoords({ x: event.clientX, y: event.clientY }, zoom)
     const p: Point = {
@@ -148,8 +187,7 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
 
   const updateMousePointer = (event: MouseEvent) => {
     const p = getAbsoluteCellPos(event, zoom)
-    const point = { x: p.x - 2 ** 15, y: p.y - 2 ** 15 }
-    dispatch(slice.actions.changePointedPixel(point))
+    dispatch(slice.actions.changePointedPixel(p))
   }
 
   const modeHandlers = {

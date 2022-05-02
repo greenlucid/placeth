@@ -122,9 +122,13 @@ const CommitButton: React.FC = () => {
 
 const PointedPixel: React.FC = () => {
   const pointedPixel = useSelector<State, Point>((state) => state.pointedPixel)
+  const rel = {
+    x: pointedPixel.x - 2 ** 15,
+    y: pointedPixel.y - 2 ** 15
+  }
   return (
     <div>
-      ({pointedPixel.x}, {pointedPixel.y})
+      ({rel.x}, {rel.y})
     </div>
   )
 }
