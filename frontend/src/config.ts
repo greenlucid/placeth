@@ -11,7 +11,7 @@ const conf: Config = {
     42: "https://api.thegraph.com/subgraphs/name/shotaronowhere/placeth",
   },
   ZOOM: 12,
-  EXPIRY_TIME: 60_000,
+  EXPIRY_TIME: 20_000,
   CHUNK_SIDE: 8,
 }
 

@@ -1,7 +1,15 @@
 import { AnyAction, Dispatch } from "@reduxjs/toolkit"
 import { Web3ReactContextInterface } from "@web3-react/core/dist/types"
 import conf from "../config"
-import { ChunkData, ChunkMap, LocalChunk, LockingArea, Point } from "../types"
+import {
+  ChunkData,
+  ChunkMap,
+  LocalChunk,
+  LockingArea,
+  PixelChange,
+  Point,
+} from "../types"
+import { palette } from "./colors"
 import chunkToColors from "./decode-chunk"
 import { FetchChunksParams } from "./fetcher"
 import { pointToString } from "./pixel-changes"
@@ -134,6 +142,35 @@ const renderChunk = (
   }
 }
 
+const renderPixelChanges = (
+  zoom: number,
+  context: CanvasRenderingContext2D,
+  offset: Point,
+  pixelChanges: PixelChange[],
+  width: number,
+  height: number
+) => {
+  for (const pixel of pixelChanges) {
+    const relPos = {
+      x: pixel.p.x - offset.x * conf.CHUNK_SIDE - 2 ** 15,
+      y: pixel.p.y - offset.y * conf.CHUNK_SIDE - 2 ** 15,
+    }
+    const screenPos = {
+      x: relPos.x * zoom,
+      y: relPos.y * zoom,
+    }
+    if (
+      screenPos.x >= 0 &&
+      screenPos.x < width &&
+      screenPos.y >= 0 &&
+      screenPos.y < height
+    ) {
+      context.fillStyle = palette[pixel.c]
+      context.fillRect(screenPos.x, screenPos.y, zoom, zoom)
+    }
+  }
+}
+
 export const renderCanvas = (
   cellSize: number,
   context: CanvasRenderingContext2D,
@@ -141,7 +178,8 @@ export const renderCanvas = (
   chunkMap: ChunkMap,
   gatherChunks: (params: FetchChunksParams) => Promise<void>,
   dispatch: Dispatch<AnyAction>,
-  web3Context: Web3ReactContextInterface<any>
+  web3Context: Web3ReactContextInterface<any>,
+  pixelChanges: PixelChange[]
 ) => {
   const canvas = document.getElementById("canvas") as any
   const chunkSize = cellSize * 8
@@ -169,4 +207,5 @@ export const renderCanvas = (
     }
     renderChunk(context, chunkCorner, chunk, cellSize)
   }
+  renderPixelChanges(cellSize, context, offset, pixelChanges, width, height)
 }

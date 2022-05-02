@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import conf from "../config"
 import { gatherChunks } from "../libs/fetcher"
+import { pixelChangesMapToArr } from "../libs/pixel-changes"
 import { renderCanvas } from "../libs/render"
 import slice from "../redux/placeth"
 import { Point, State } from "../types"
@@ -18,7 +19,7 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
   width,
   height,
 }) => {
-  const { colorId, cursorMode, chunkMap, zoom } = useSelector<State, State>(
+  const { colorId, cursorMode, chunkMap, zoom, pixelChangesMap } = useSelector<State, State>(
     (state) => state
   )
   const dispatch = useDispatch()
@@ -42,10 +43,11 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
         chunkMap,
         gatherChunks,
         dispatch,
-        web3Context
+        web3Context,
+        pixelChangesMapToArr(pixelChangesMap)
       )
     }
-  }, [chunkCorner, canvasRef.current, zoom])
+  }, [chunkCorner, canvasRef.current, zoom, pixelChangesMap])
 
   const dragModeAnchorMouse = (event: MouseEvent) => {
     const absoluteCell = getWrongAbsoluteCellPos(event, zoom)

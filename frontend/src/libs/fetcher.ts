@@ -2,7 +2,7 @@ import { AnyAction, Dispatch } from "@reduxjs/toolkit"
 import conf from "../config"
 import slice from "../redux/placeth"
 import { ChunkMap, FetchedChunk, LocalChunk } from "../types"
-import { nullChunk } from "./render"
+import { loadingChunk, nullChunk } from "./render"
 import { hexStringToBytes, mockLocalChunk } from "./decode-chunk"
 
 export interface FetchChunksParams {
@@ -29,6 +29,7 @@ const setChunksAsFetching = (
     } else {
       const mockedChunk: LocalChunk = mockLocalChunk(id)
       mockedChunk.fetching = true
+      mockedChunk.data = loadingChunk
       dispatch(slice.actions.addChunk(mockedChunk))
     }
   }
