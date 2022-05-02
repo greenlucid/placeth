@@ -76,30 +76,52 @@ const renderLockingArea = (
   height: number,
   context: CanvasRenderingContext2D,
   lockingArea: LockingArea,
-  cellSize: number
+  zoom: number,
+  offset: Point
 ): void => {
   if (lockingArea.start === undefined) return
 
-  const lockingAreaStart = {
-    x: lockingArea.start.x * cellSize + width / 2,
-    y: lockingArea.start.y * cellSize + height / 2,
+  const relLockingAreaStart = {
+    x: lockingArea.start.x - (offset.x * 8 + 2 ** 15),
+    y: lockingArea.start.y - (offset.y * 8 + 2 ** 15)
+  }
+  const screenStart = {
+    x: relLockingAreaStart.x * zoom,
+    y: relLockingAreaStart.y * zoom
   }
 
   if (lockingArea.end === undefined) {
-    context.fillStyle = "#dddd00"
-    context.rect(
-      lockingAreaStart.x + cellSize * 0.25,
-      lockingAreaStart.y + cellSize * 0.25,
-      cellSize * 0.25,
-      cellSize * 0.25
-    )
+    if (
+      screenStart.x >= 0 &&
+      screenStart.x < width &&
+      screenStart.y >= 0 &&
+      screenStart.y < height
+    ) {
+      context.fillStyle = "#ff0000"
+      context.lineWidth = 5
+      context.beginPath()
+      context.moveTo(screenStart.x - zoom * 5, screenStart.y)
+      context.lineTo(screenStart.x + zoom * 5, screenStart.y)
+      context.moveTo(screenStart.x, screenStart.y - zoom * 5)
+      context.lineTo(screenStart.x, screenStart.y + zoom * 5)
+      context.stroke()
+    } else return
   } else {
-    context.strokeStyle = "#dddd00"
+    const relLockingAreaEnd = {
+      x: lockingArea.end.x - (offset.x * 8 + 2 ** 15),
+      y: lockingArea.end.y - (offset.y * 8 + 2 ** 15)
+    }
+    const screenEnd = {
+      x: relLockingAreaEnd.x * zoom,
+      y: relLockingAreaEnd.y * zoom
+    }
+    context.strokeStyle = "#ff0000"
+    context.lineWidth = 5
     context.strokeRect(
-      lockingAreaStart.x,
-      lockingAreaStart.y,
-      (lockingArea.end.x - lockingArea.start.x) * cellSize,
-      (lockingArea.end.y - lockingArea.start.y) * cellSize
+      screenStart.x,
+      screenStart.y,
+      (screenEnd.x - screenStart.x),
+      (screenEnd.y - screenStart.y)
     )
   }
 }
@@ -179,7 +201,8 @@ export const renderCanvas = (
   gatherChunks: (params: FetchChunksParams) => Promise<void>,
   dispatch: Dispatch<AnyAction>,
   web3Context: Web3ReactContextInterface<any>,
-  pixelChanges: PixelChange[]
+  pixelChanges: PixelChange[],
+  lockingArea: LockingArea
 ) => {
   const canvas = document.getElementById("canvas") as any
   const chunkSize = cellSize * 8
@@ -208,4 +231,5 @@ export const renderCanvas = (
     renderChunk(context, chunkCorner, chunk, cellSize)
   }
   renderPixelChanges(cellSize, context, offset, pixelChanges, width, height)
+  renderLockingArea(width, height, context, lockingArea, cellSize, offset)
 }

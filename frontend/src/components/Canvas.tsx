@@ -19,7 +19,7 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
   width,
   height,
 }) => {
-  const { colorId, cursorMode, chunkMap, zoom, pixelChangesMap } = useSelector<State, State>(
+  const { colorId, cursorMode, chunkMap, zoom, pixelChangesMap, lockingArea } = useSelector<State, State>(
     (state) => state
   )
   const dispatch = useDispatch()
@@ -44,10 +44,11 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
         gatherChunks,
         dispatch,
         web3Context,
-        pixelChangesMapToArr(pixelChangesMap)
+        pixelChangesMapToArr(pixelChangesMap),
+        lockingArea
       )
     }
-  }, [chunkCorner, canvasRef.current, zoom, pixelChangesMap])
+  }, [chunkCorner, canvasRef.current, zoom, pixelChangesMap, lockingArea])
 
   const dragModeAnchorMouse = (event: MouseEvent) => {
     const absoluteCell = getWrongAbsoluteCellPos(event, zoom)

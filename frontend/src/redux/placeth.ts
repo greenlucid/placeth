@@ -30,8 +30,12 @@ const slice = createSlice({
     },
     setLockingArea(state, action) {
       const lockingArea = state.lockingArea
-      if (lockingArea.start === undefined) {
+      if (
+        lockingArea.start === undefined ||
+        (lockingArea.start !== undefined && lockingArea.end !== undefined)
+      ) {
         state.lockingArea.start = action.payload
+        state.lockingArea.end = undefined
       } else if (
         lockingArea.start.x <= action.payload.x &&
         lockingArea.start.y <= action.payload.y
