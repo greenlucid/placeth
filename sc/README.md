@@ -17,6 +17,16 @@ npx hardhat help
 
 # Deployment
 
+## placePixelRealityFirst
+
 - Gnosis Chain https://blockscout.com/xdai/mainnet/address/0x42cdC690Bf89eBe4E2A854A233BF04DC8c283Cd0/read-contract
 
 - Kovan https://kovan.etherscan.io/address/0xb25ba694e53ed11fa7e1aeca8cc640f85af5b436
+
+- Subgraph https://thegraph.com/hosted-service/subgraph/shotaronowhere/placeth
+
+## placePixel
+
+- Kovan https://kovan.etherscan.io/address/0x3a0BB64122Ca028f6333D1f8845f0E0410C12F6F
+
+- Subgraph https://thegraph.com/hosted-service/subgraph/shotaronowhere/placepixel
