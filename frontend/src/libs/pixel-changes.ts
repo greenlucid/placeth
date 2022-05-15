@@ -5,9 +5,8 @@ export const pointToString = (p: Point): string => {
   return `${p.x},${p.y}`
 }
 
-const stringToPoint = (s: string): Point => {
-  const x = Number.parseInt(s.substring(0, 5))
-  const y = Number.parseInt(s.substring(6))
+export const stringToPoint = (s: string): Point => {
+  const [x, y] = s.split(",").map((n) => Number(n))
   return { x, y }
 }
 

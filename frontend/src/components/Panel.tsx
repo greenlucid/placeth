@@ -5,24 +5,17 @@ import { hexToColorId, palette } from "../libs/colors"
 import encodePixelChanges, { pixelChangesMapToArr } from "../libs/pixel-changes"
 
 import placeAbi from "../abis/place.json"
-
-import {
-  loadChangeColorId,
-  loadChangeCursorMode,
-  loadDeletePixelChanges,
-} from "../redux/actions"
 import slice from "../redux/placeth"
-import { PixelChangesMap, State } from "../types"
+import { PixelChangesMap, Point, State } from "../types"
 import { useWeb3React } from "@web3-react/core"
 
 const DragButton: React.FC = () => {
-  const actions = slice.actions
   const dispatch = useDispatch()
   return (
     <button
       onClick={() => {
-        dispatch(loadChangeColorId(undefined))
-        dispatch(loadChangeCursorMode("drag"))
+        dispatch(slice.actions.changeColorId(undefined))
+        dispatch(slice.actions.changeCursorMode("drag"))
       }}
     >
       Drag Mode
@@ -35,8 +28,8 @@ const EraseButton: React.FC = () => {
   return (
     <button
       onClick={() => {
-        dispatch(loadChangeColorId(undefined))
-        dispatch(loadChangeCursorMode("erase"))
+        dispatch(slice.actions.changeColorId(undefined))
+        dispatch(slice.actions.changeCursorMode("erase"))
       }}
     >
       Erase Mode
@@ -49,8 +42,8 @@ const LockModeButton: React.FC = () => {
   return (
     <button
       onClick={() => {
-        dispatch(loadChangeColorId(undefined))
-        dispatch(loadChangeCursorMode("lock"))
+        dispatch(slice.actions.changeColorId(undefined))
+        dispatch(slice.actions.changeCursorMode("lock"))
       }}
     >
       Lock Mode
@@ -60,24 +53,24 @@ const LockModeButton: React.FC = () => {
 
 const ZoomButtons: React.FC = () => {
   const dispatch = useDispatch()
-  const cellSize = useSelector<State, number>((state) => state.cellSize)
+  const zoom = useSelector<State, number>((state) => state.zoom)
   return (
     <>
       <button
         onClick={() => {
-          dispatch(slice.actions.changeCellSize(cellSize - 1))
+          dispatch(slice.actions.changeZoom(zoom - 1))
         }}
       >
         - Zoom
       </button>
       <button
         onClick={() => {
-          dispatch(slice.actions.changeCellSize(cellSize + 1))
+          dispatch(slice.actions.changeZoom(zoom + 1))
         }}
       >
         + Zoom
       </button>
-      Current zoom: {cellSize}
+      Current zoom: {zoom}
     </>
   )
 }
@@ -87,7 +80,7 @@ const DeleteChangesButton: React.FC = () => {
   return (
     <button
       onClick={() => {
-        dispatch(loadDeletePixelChanges())
+        dispatch(slice.actions.deletePixelChanges())
       }}
     >
       Delete All Changes
@@ -103,14 +96,11 @@ const CommitButton: React.FC = () => {
   const dispatch = useDispatch()
   const clickable = Object.values(pixelChangesMap).length !== 0
   const commitChanges = async () => {
-    console.log(web3React)
-    console.log(pixelChangesMap)
     if (!web3React.account) return
     // @ts-ignore
     const signer = new ethers.providers.Web3Provider(window.ethereum).getSigner(
       web3React.account
     )
-    console.log("the culprit?", signer)
     const gtcr = new ethers.Contract(
       "0xb25ba694e53ed11fa7e1aeca8cc640f85af5b436",
       placeAbi,
@@ -119,15 +109,27 @@ const CommitButton: React.FC = () => {
 
     const pixelChanges = pixelChangesMapToArr(pixelChangesMap)
     const calldata = encodePixelChanges(pixelChanges)
-    console.log(calldata)
     await gtcr.changePixels(calldata)
 
-    dispatch(loadDeletePixelChanges())
+    dispatch(slice.actions.deletePixelChanges())
   }
   return (
     <button disabled={!clickable} onClick={commitChanges}>
       Commit Changes
     </button>
+  )
+}
+
+const PointedPixel: React.FC = () => {
+  const pointedPixel = useSelector<State, Point>((state) => state.pointedPixel)
+  const rel = {
+    x: pointedPixel.x - 2 ** 15,
+    y: pointedPixel.y - 2 ** 15
+  }
+  return (
+    <div>
+      ({rel.x}, {rel.y})
+    </div>
   )
 }
 
@@ -150,13 +152,14 @@ const Panel: React.FC = () => {
 
   const handleChange = (color: ColorResult) => {
     const newColorId = hexToColorId[color.hex]
-    dispatch(loadChangeColorId(newColorId))
-    dispatch(loadChangeCursorMode("paint"))
+    dispatch(slice.actions.changeColorId(newColorId))
+    dispatch(slice.actions.changeCursorMode("paint"))
   }
 
   return (
     <div className="panel">
       drag around to keep reloading the canvas! :)
+      <PointedPixel />
       <DragButton />
       <EraseButton />
       <LockModeButton />

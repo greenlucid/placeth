@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Locking } from "../types"
 import conf from "../config"
 
-const fetchLockings = async (): Promise<Locking[]> => {
+const fetchLockings = async (chainId: number): Promise<Locking[]> => {
   const subgraphQuery = {
     query: `
       {
@@ -18,7 +18,7 @@ const fetchLockings = async (): Promise<Locking[]> => {
       }
     `,
   }
-  const response = await fetch(conf.SUBGRAPH_URL, {
+  const response = await fetch(conf.SUBGRAPH_URL_MAP[chainId], {
     method: "POST",
     body: JSON.stringify(subgraphQuery),
   })

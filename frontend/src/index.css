@@ -22,3 +22,7 @@ code {
   background-blend-mode: darken;
   background-color: blanchedalmond;
 }
+
+.canvasContainer {
+  margin: 10px;
+}
