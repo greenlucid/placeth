@@ -28,6 +28,10 @@ import "./placeERC721.sol";
  **/
 contract placePixel {
 
+    // could be toggled up to protect placeth from spam, if gas was extremely cheap.
+    // the value will be verified on the subgraph, and the changes are only accepted
+    // if value >= length * costPerBytePixelChanges 
+    uint256 public costPerBytePixelChanges;
     uint256 public costPerPixel;
     uint256 public baseDeposit;
     uint256 public depositRatio;
@@ -81,7 +85,7 @@ contract placePixel {
 
     }
 
-    function changePixels(bytes calldata _pixels) external{
+    function changePixels(bytes calldata _pixels) external payable {
     }
 
     function request(uint64 _packedCoordinates) external payable returns(bytes32 id){
@@ -186,12 +190,20 @@ contract placePixel {
         arbitrator = _arbitrator;
     }
 
+    /** @dev Changes the `costPerBytePixelChanges` storage variable.
+     *  @param _costPerBytePixelChanges The new value for the `costPerBytePixelChanges` storage variable.
+     */
+    function changeCostPerBytePixelChanges(uint256 _costPerBytePixelChanges) external onlyByGovernor {
+        costPerBytePixelChanges = _costPerBytePixelChanges;
+    }
+
     /** @dev Changes the `costPerPixel` storage variable.
      *  @param _costPerPixel The new value for the `costPerPixel` storage variable.
      */
     function changeCostPerPixel(uint256 _costPerPixel) external onlyByGovernor {
         costPerPixel = _costPerPixel;
     }
+
 
     /** @dev Changes the `baseDeposit` storage variable.
      *  @param _baseDeposit The new value for the `baseDeposit` storage variable.
