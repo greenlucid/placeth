@@ -19,9 +19,8 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
   width,
   height,
 }) => {
-  const { colorId, cursorMode, chunkMap, zoom, pixelChangesMap, lockingArea } = useSelector<State, State>(
-    (state) => state
-  )
+  const { colorId, cursorMode, chunkMap, zoom, pixelChangesMap, lockingArea } =
+    useSelector<State, State>((state) => state)
   const dispatch = useDispatch()
   const web3Context = useWeb3React()
 
@@ -80,7 +79,7 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
         x: Math.floor(newCellChunkOffset.x / conf.CHUNK_SIDE),
         y: Math.floor(newCellChunkOffset.y / conf.CHUNK_SIDE),
       }
-  
+
       if (chunkOffset.x !== 0 || chunkOffset.y !== 0) {
         const nextCellChunkOffset = {
           x: (newCellChunkOffset.x + 800) % conf.CHUNK_SIDE,
@@ -182,7 +181,6 @@ const Canvas: React.FC<{ width: number; height: number }> = ({
     <div className="canvasContainer">
       <canvas
         id="canvas"
-        style={{ border: "2px", borderStyle: "double", borderColor: "blue" }}
         ref={canvasRef}
         width={width}
         height={height}
