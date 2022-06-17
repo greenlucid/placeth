@@ -9,7 +9,7 @@ import {
   PixelChange,
   Point,
 } from "../types"
-import { palette } from "./colors"
+import { colors } from "./colors"
 import chunkToColors from "./decode-chunk"
 import { FetchChunksParams } from "./fetcher"
 import { pointToString } from "./pixel-changes"
@@ -83,11 +83,11 @@ const renderLockingArea = (
 
   const relLockingAreaStart = {
     x: lockingArea.start.x - (offset.x * 8 + 2 ** 15),
-    y: lockingArea.start.y - (offset.y * 8 + 2 ** 15)
+    y: lockingArea.start.y - (offset.y * 8 + 2 ** 15),
   }
   const screenStart = {
     x: relLockingAreaStart.x * zoom,
-    y: relLockingAreaStart.y * zoom
+    y: relLockingAreaStart.y * zoom,
   }
 
   if (lockingArea.end === undefined) {
@@ -109,19 +109,19 @@ const renderLockingArea = (
   } else {
     const relLockingAreaEnd = {
       x: lockingArea.end.x - (offset.x * 8 + 2 ** 15),
-      y: lockingArea.end.y - (offset.y * 8 + 2 ** 15)
+      y: lockingArea.end.y - (offset.y * 8 + 2 ** 15),
     }
     const screenEnd = {
       x: relLockingAreaEnd.x * zoom,
-      y: relLockingAreaEnd.y * zoom
+      y: relLockingAreaEnd.y * zoom,
     }
     context.strokeStyle = "#ff0000"
     context.lineWidth = 5
     context.strokeRect(
       screenStart.x,
       screenStart.y,
-      (screenEnd.x - screenStart.x),
-      (screenEnd.y - screenStart.y)
+      screenEnd.x - screenStart.x,
+      screenEnd.y - screenStart.y
     )
   }
 }
@@ -187,7 +187,7 @@ const renderPixelChanges = (
       screenPos.y >= 0 &&
       screenPos.y < height
     ) {
-      context.fillStyle = palette[pixel.c]
+      context.fillStyle = colors[pixel.c]
       context.fillRect(screenPos.x, screenPos.y, zoom, zoom)
     }
   }
