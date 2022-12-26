@@ -32,9 +32,14 @@ contract placePixel {
     // the value will be verified on the subgraph, and the changes are only accepted
     // if value >= length * costPerBytePixelChanges 
     uint256 public costPerBytePixelChanges;
+
+    // for lock requests.
+    // the deposit for a lock request is the min(area * costPerPixel, minDeposit) 
     uint256 public costPerPixel;
-    uint256 public baseDeposit;
+    uint256 public minDeposit;
+    // ratio to start a challenge.
     uint256 public depositRatio;
+    // todo make ratio that is kept in the contract after successful challenge.  
     uint256 public requestCount;
     uint32 public challengePeriod;
     lockRequest[] public lockRequests;
@@ -93,8 +98,10 @@ contract placePixel {
         uint16 _xx = uint16(_packedCoordinates >> 16);
         uint16 _y = uint16(_packedCoordinates >> 32);
         uint16 _x = uint16(_packedCoordinates >> 48);
-    
-        require(msg.value >= (uint256(_xx-_x)+1)*(uint256(_yy-_y)+1)*costPerPixel+baseDeposit, "Insufficient deposit.");
+
+        uint256 landValue = (uint256(_xx-_x)+1)*(uint256(_yy-_y)+1)*costPerPixel;
+        uint256 requestValue = landValue > minDeposit ? landValue : minDeposit;
+        require(msg.value >= requestValue, "Insufficient deposit.");
 
         //emit lockTest(id, _packedCoordinates);
         emit lock(lockRequests.length, _packedCoordinates);

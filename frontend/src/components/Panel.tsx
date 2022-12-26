@@ -1,5 +1,4 @@
 import { ethers } from "ethers"
-import { ColorResult, SwatchesPicker } from "react-color"
 import { useDispatch, useSelector } from "react-redux"
 import { hexToColorId, palette } from "../libs/colors"
 import encodePixelChanges, { pixelChangesMapToArr } from "../libs/pixel-changes"
@@ -8,6 +7,7 @@ import placeAbi from "../abis/place.json"
 import slice from "../redux/placeth"
 import { PixelChangesMap, Point, State } from "../types"
 import { useWeb3React } from "@web3-react/core"
+import ColorPicker from "./ColorPicker"
 
 const DragButton: React.FC = () => {
   const dispatch = useDispatch()
@@ -124,7 +124,7 @@ const PointedPixel: React.FC = () => {
   const pointedPixel = useSelector<State, Point>((state) => state.pointedPixel)
   const rel = {
     x: pointedPixel.x - 2 ** 15,
-    y: pointedPixel.y - 2 ** 15
+    y: pointedPixel.y - 2 ** 15,
   }
   return (
     <div>
@@ -144,18 +144,8 @@ const empackArray = (items: any, size: number) => {
   return packs
 }
 
-const packedPalette = empackArray(palette, 2)
 
 const Panel: React.FC = () => {
-  const dispatch = useDispatch()
-  const colorId = useSelector<State, number>((state) => state.colorId)
-
-  const handleChange = (color: ColorResult) => {
-    const newColorId = hexToColorId[color.hex]
-    dispatch(slice.actions.changeColorId(newColorId))
-    dispatch(slice.actions.changeCursorMode("paint"))
-  }
-
   return (
     <div className="panel">
       drag around to keep reloading the canvas! :)
@@ -165,12 +155,7 @@ const Panel: React.FC = () => {
       <LockModeButton />
       <DeleteChangesButton />
       <ZoomButtons />
-      <SwatchesPicker
-        className="colorPicker"
-        color={colorId ? palette[colorId] : undefined}
-        colors={packedPalette}
-        onChange={handleChange}
-      />
+      <ColorPicker />
       <CommitButton />
       <div>
         <a href="/lockings">LOCKINGS</a>
